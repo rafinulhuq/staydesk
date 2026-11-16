@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace StayDesk.Domain.Bookings;
 
 public class Booking
@@ -34,6 +36,13 @@ public class Booking
 
     // Concurrency token (BOOK-4); mapped to PostgreSQL's xmin.
     public uint Version { get; private set; }
+
+    // SRCH-3: a booking blocks its room while Confirmed or CheckedIn, or Pending and not yet
+    // expired. An expression, so availability queries run it in SQL.
+    public static Expression<Func<Booking, bool>> IsActiveAt(DateTimeOffset now) => b =>
+        b.Status == BookingStatus.Confirmed
+        || b.Status == BookingStatus.CheckedIn
+        || (b.Status == BookingStatus.Pending && b.ExpiresAt > now);
 
     // EF Core materialises through this; owned PriceBreakdown can't bind to a constructor.
     private Booking()

@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StayDesk.Application.Errors;
 
 namespace StayDesk.Api.Errors;
@@ -25,6 +26,13 @@ public sealed class ProblemExceptionHandler(IProblemDetailsService problemDetail
                 },
                 Detail = known.Message,
                 Extensions = { ["code"] = known.Code },
+            },
+            // Raised when a row's xmin no longer matches the version the client edited.
+            DbUpdateConcurrencyException => new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Detail = "Someone else changed this record. Reload and try again.",
+                Extensions = { ["code"] = "concurrency_conflict" },
             },
             _ => null,
         };

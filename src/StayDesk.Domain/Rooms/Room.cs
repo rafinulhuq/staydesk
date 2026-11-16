@@ -23,4 +23,28 @@ public class Room
         MaxGuests = maxGuests;
         BasePrice = basePrice;
     }
+
+    public void Update(
+        string roomNumber,
+        RoomType type,
+        int maxGuests,
+        decimal basePrice,
+        IEnumerable<string> imageUrls,
+        IEnumerable<Amenity> amenities)
+    {
+        RoomNumber = roomNumber;
+        Type = type;
+        MaxGuests = maxGuests;
+        BasePrice = basePrice;
+        ImageUrls = [.. imageUrls];
+        Amenities.Clear();
+        foreach (var amenity in amenities)
+        {
+            Amenities.Add(amenity);
+        }
+    }
+
+    public void Deactivate() => IsActive = false;
+
+    public void Reactivate() => IsActive = true;
 }

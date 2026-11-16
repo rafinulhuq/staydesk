@@ -99,3 +99,20 @@ One entry per decision that shaped the SRS. Add new entries at the bottom; don't
 - Test projects are executables.
 - Async test calls must pass `TestContext.Current.CancellationToken`, or the xUnit1051 analyzer fails the build.
 - Code coverage needs an MTP extension instead of coverlet's VSTest collector (decided in 1d).
+
+---
+
+## D8. Application services query EF Core through `IStayDeskDbContext`
+
+**Date:** 2026-11-17 · **Status:** accepted
+
+**Context.** Phase 2b added the first Application services (properties, rooms). They need the database, but Application must not reference Infrastructure.
+
+**Decision.** Application defines `IStayDeskDbContext` (the DbSets it uses, `Entry`, `SaveChangesAsync`) and references the `Microsoft.EntityFrameworkCore` package. `StayDeskDbContext` implements it. Services write LINQ against it directly. No repository layer.
+
+**Why.**
+- AGENTS.md rules out a generic repository over EF Core: `DbSet` already is one, and a wrapper hides `Include`, projections and `AsNoTracking`.
+- Services stay in Application, where the SRS puts business rules and the coverage target.
+- Auth stays in Infrastructure (`AuthService` behind `IAuthService`) because it needs ASP.NET Identity's `UserManager`.
+
+**Cost.** Application depends on EF Core's API (not on Npgsql or any provider). Provider-specific SQL (row locks, `23P01` handling in phase 4) has to live in Infrastructure behind a narrow interface.

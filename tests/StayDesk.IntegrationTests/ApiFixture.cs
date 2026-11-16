@@ -1,5 +1,10 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using StayDesk.Application.Auth;
 
 namespace StayDesk.IntegrationTests;
 
@@ -25,6 +30,19 @@ public sealed class ApiFixture : IAsyncLifetime
 
         // The factory starts lazily on first use; start it now so every test sees a seeded database.
         _ = Factory.Server;
+    }
+
+    // Matches the API's JSON: camelCase and enums as strings.
+    public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+
+    public async Task<HttpClient> CreateClientAsync(string email, string password)
+    {
+        var client = Factory.CreateClient();
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(email, password), TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
+        var tokens = await response.Content.ReadFromJsonAsync<AuthTokens>(TestContext.Current.CancellationToken);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.AccessToken);
+        return client;
     }
 
     public async ValueTask DisposeAsync()

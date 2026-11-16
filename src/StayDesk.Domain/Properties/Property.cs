@@ -37,4 +37,32 @@ public class Property
         TimeZone = timeZone;
         CreatedAt = createdAt;
     }
+
+    public void Update(
+        string name,
+        string city,
+        string address,
+        string description,
+        string? imageUrl,
+        TimeOnly checkInTime,
+        TimeOnly checkOutTime,
+        string timeZone)
+    {
+        Name = name;
+        City = city;
+        Address = address;
+        Description = description;
+        ImageUrl = imageUrl;
+        CheckInTime = checkInTime;
+        CheckOutTime = checkOutTime;
+        TimeZone = timeZone;
+    }
+
+    public void Deactivate() => IsActive = false;
+
+    public void Reactivate() => IsActive = true;
+
+    // The calendar date at the property, which is what "today" means for bookings there.
+    public DateOnly TodayAt(DateTimeOffset now) =>
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById(TimeZone)).DateTime);
 }

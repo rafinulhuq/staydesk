@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using StayDesk.Application.Persistence;
 using StayDesk.Domain.Auditing;
 using StayDesk.Domain.Bookings;
 using StayDesk.Domain.Payments;
@@ -13,7 +14,7 @@ using StayDesk.Infrastructure.Persistence.Configurations;
 namespace StayDesk.Infrastructure.Persistence;
 
 public class StayDeskDbContext(DbContextOptions<StayDeskDbContext> options)
-    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
+    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options), IStayDeskDbContext
 {
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<Room> Rooms => Set<Room>();

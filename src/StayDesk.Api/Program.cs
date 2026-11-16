@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,9 @@ builder.Services.AddControllers(options =>
     // FluentValidation is the one place request rules live; without this, MVC adds its own
     // [Required] errors for non-nullable strings before the validators run.
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
-});
+})
+    // Enums are strings in the database (SRS §5), so the API uses the same names.
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ProblemExceptionHandler>();
 

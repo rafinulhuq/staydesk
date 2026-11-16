@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StayDesk.Application.Auth;
+using StayDesk.Application.Persistence;
 using StayDesk.Infrastructure.Identity;
 using StayDesk.Infrastructure.Persistence;
 using StayDesk.Infrastructure.Persistence.Seeding;
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddDbContext<StayDeskDbContext>(options => options
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention());
+        services.AddScoped<IStayDeskDbContext>(sp => sp.GetRequiredService<StayDeskDbContext>());
 
         // AddIdentityCore registers users, roles and password hashing without cookie auth;
         // the API authenticates with JWTs instead (AUTH-2).

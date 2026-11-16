@@ -2,7 +2,7 @@
 
 Hotel booking platform with a public booking site and a staff back-office. ASP.NET Core 10 + Angular 22 + PostgreSQL.
 
-**Status:** early build. Phase 1 (foundation) is done. Phase 2 (auth and inventory) is in progress: the auth API works, there is no UI yet.
+**Status:** early build. Phase 1 (foundation) is done. Phase 2 (auth and inventory) is in progress: the auth and property/room APIs work, there is no UI yet.
 
 ## What it will do
 

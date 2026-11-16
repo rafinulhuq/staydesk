@@ -2,14 +2,14 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 02:05 +06
+**Last updated:** 2026-11-17 02:45 +06
 
 ## Where things stand
 
-- **Phase:** 2a done (auth API: register, login, refresh with reuse detection, logout, me; lockout, rate limit, Problem Details). **Next: 2b**: property, room and amenity CRUD API with soft delete and reactivation. Check T-028 first: the users admin endpoints may be added to 2b.
+- **Phase:** 2b done (property, room and amenity API). **Next: 2c**: Angular login/register, auth interceptor with single-flight refresh, guards; add CORS (T-030) in the same step.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
-- **Open owner decisions:** T-003, T-004, T-005, T-028, T-032.
+- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-003, T-004, T-005, T-028, T-032, T-037.
 - **Interview notes:** `notes/interview-prep.md` (git-ignored, local only). Append 2–3 talking points there at the end of every sub-feature.
 
 ## Files and what each one is for
@@ -45,6 +45,8 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Testcontainers finds Docker Desktop through the Docker context; no `DOCKER_HOST` needed. The local API connection string is in user-secrets on this machine.
 - `curl localhost:…` from the sandbox can't reach the host. Run HTTP smoke tests on the host: `flatpak-spawn --host sh -s < script.sh`.
 - Integration tests raise the auth rate limit with `RateLimiting:AuthPermitLimit` (all test requests share one IP); the 429 test sets it back to 10 on a derived factory.
+- Application services use `IStayDeskDbContext` (D8). Admin queries must call `IgnoreQueryFilters()` to see inactive rows; public room queries also need the property filter (`db.Properties.Any(...)`), because Room has no navigation to Property.
+- `docker compose up --wait` does not wait for the API (no healthcheck, T-035); poll `/health` before smoke tests.
 - GitHub CLI `gh` works in the sandbox and is logged in; `gh run list -L1` / `gh run view <id>` to check CI after a push.
 - `ng add` fails under npm 11 (EALLOWSCRIPTS). Workaround: `npm install -D <pkg>`, then `npx ng add <pkg>`, then `npm install` again to finish the schematic's installs.
 - coverlet.MTP: pass `--coverlet-include "[StayDesk.*]*"` whenever you pass an exclude, or it instruments xunit's assemblies too (and once ran only the unit tests).
@@ -56,4 +58,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Phase 2b: list the PROP-* IDs and the files to touch, per `AGENTS.md`.
+2. Phase 2c: list the requirement IDs (§7 auth parts, AUTH-*, NFR-3 CORS) and the files to touch, per `AGENTS.md`.
