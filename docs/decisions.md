@@ -117,7 +117,7 @@ One entry per decision that shaped the SRS. Add new entries at the bottom; don't
 
 **Cost.** Application depends on EF Core's API (not on Npgsql or any provider). Provider-specific SQL (row locks, `23P01` handling in phase 4) has to live in Infrastructure behind a narrow interface.
 
-## D9: Pricing engine in Domain, returning the booking snapshot type
+## D9. Pricing engine in Domain, returning the booking snapshot type
 
 **Date:** 2026-11-17 · **Status:** accepted
 
