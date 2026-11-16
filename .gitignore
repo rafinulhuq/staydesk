@@ -1,0 +1,50 @@
+# --- Secrets (never commit) ---
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+*.key
+appsettings.*.local.json
+secrets.json
+
+# --- .NET ---
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+*.trx
+efbundle
+efbundle.exe
+logs/
+
+# --- Node / Angular ---
+node_modules/
+dist/
+.angular/
+out-tsc/
+.npm/
+npm-debug.log*
+yarn-error.log*
+.sass-cache/
+
+# --- IDE / OS ---
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Claude Code local settings ---
+.claude/settings.local.json
