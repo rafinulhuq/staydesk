@@ -2,7 +2,7 @@
 
 Hotel booking platform with a public booking site and a staff back-office. ASP.NET Core 10 + Angular 22 + PostgreSQL.
 
-**Status:** specification done, implementation not started. Nothing below the Roadmap exists yet.
+**Status:** early build. Phase 1 (foundation) is in progress; there are no features to use yet.
 
 ## What it will do
 
@@ -36,7 +36,7 @@ Design decisions and their tradeoffs: [`docs/decisions.md`](docs/decisions.md).
 
 Build order from SRS §10:
 
-- [ ] 1. Foundation: solution, Docker Compose, data model, seed data, CI
+- [ ] 1. Foundation: solution, Docker Compose, data model, seed data, CI (all done except CI)
 - [ ] 2. Auth and inventory
 - [ ] 3. Search and pricing
 - [ ] 4. Booking core
@@ -46,4 +46,18 @@ Build order from SRS §10:
 
 ## Running locally
 
-Not available yet. This section will document `docker compose up` once Phase 1 lands.
+Requires Docker.
+
+```bash
+docker compose up -d --build --wait
+```
+
+This starts PostgreSQL, Mailpit (http://localhost:8025) and the API (http://localhost:8080). The API applies migrations and seeds demo data on startup. `GET /health` reports database status.
+
+Demo accounts (local only): `admin@example.com` / `Admin123`, `staff@example.com` / `Staff123`, `guest@example.com` / `Guest123`. There's no login endpoint yet.
+
+Running tests needs the .NET 10 SDK and Docker:
+
+```bash
+dotnet test
+```

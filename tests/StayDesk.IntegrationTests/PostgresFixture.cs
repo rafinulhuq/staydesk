@@ -10,9 +10,11 @@ public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:16.16-alpine").Build();
 
+    public string ConnectionString => _container.GetConnectionString();
+
     public StayDeskDbContext CreateContext() =>
         new(new DbContextOptionsBuilder<StayDeskDbContext>()
-            .UseNpgsql(_container.GetConnectionString())
+            .UseNpgsql(ConnectionString)
             .UseSnakeCaseNamingConvention()
             .Options);
 

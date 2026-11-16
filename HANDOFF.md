@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-16 22:15 +06
+**Last updated:** 2026-11-16 22:29 +06
 
 ## Where things stand
 
-- **Phase:** 1b done (Compose, entities, DbContext, first migration with the overlap constraint). **Next: 1c**: seed data (demo + load), Serilog, Swagger UI, `/health`, migrate-and-seed on startup in Development, and the api service in Compose.
+- **Phase:** 1c done (seed data without bookings, Serilog + correlation IDs, Swagger UI, `/health`, migrate/seed on startup, API in Compose). **Next: 1d**: GitHub Actions CI building both apps and running all tests.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
 - **Open owner decisions:** T-003, T-004, T-005.
@@ -39,6 +39,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Gotchas found so far
 
 - **This machine:** the agent shell runs inside the VS Code Flatpak sandbox. `dotnet` and `docker` exist only on the host, so run them as `flatpak-spawn --host --directory=<repo> sh -c '…'`. Node/npm work directly in the sandbox.
+- Local secrets on this machine (user-secrets for `src/StayDesk.Api`): `ConnectionStrings:Default` and `Seed:{Admin,Staff,Guest}Password`. A fresh clone needs them set (see `AGENTS.md` Commands), or use `docker compose up`.
 - Tests use xUnit v3 on Microsoft.Testing.Platform (D7). Pass `TestContext.Current.CancellationToken` to async calls (analyzer xUnit1051 is an error). `dotnet test --project <csproj>` to run one project.
 - Testcontainers finds Docker Desktop through the Docker context; no `DOCKER_HOST` needed. The local API connection string is in user-secrets on this machine.
 - npm 11 blocks package install scripts by default. Angular builds and tests pass without them (T-014).
@@ -48,5 +49,5 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Next steps
 
-1. Owner decides  **before 1c** adds more tests; T-003/T-004/T-005 whenever.
-2. Phase 1c: idempotent `DbSeeder` (3 properties × 6–10 rooms, amenities, demo users, ~40 bookings relative to today, load seed behind `Seed__LoadTest`), Serilog with correlation IDs, Swagger UI, `/health` with a DB check, migrate + seed on startup in Development, `api` service + Dockerfile in Compose.
+1. Owner decides T-003/T-004/T-005 whenever.
+2. Phase 1d: `.github/workflows/ci.yml`. On push and PR: `dotnet build -warnaserror`, `dotnet test` (Testcontainers works on GitHub's Ubuntu runners), and in `client/staydesk-web` ESLint (`ng add angular-eslint`), Vitest and a production build. Pick an MTP coverage extension and upload the report (T-021).

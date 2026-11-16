@@ -18,12 +18,25 @@ public class PriceRule
     public int? DaysBeforeCheckIn { get; private set; }
     public bool IsActive { get; private set; } = true;
 
-    public PriceRule(Guid propertyId, Guid? roomId, string name, PriceRuleType type, decimal percentChange)
+    public PriceRule(
+        Guid propertyId,
+        Guid? roomId,
+        string name,
+        PriceRuleType type,
+        decimal percentChange,
+        DateOnly? startDate = null,
+        DateOnly? endDate = null,
+        int? minNights = null,
+        int? daysBeforeCheckIn = null)
     {
         PropertyId = propertyId;
         RoomId = roomId;
         Name = name;
         Type = type;
         PercentChange = percentChange;
+        StartDate = startDate;
+        EndDate = endDate;
+        MinNights = minNights;
+        DaysBeforeCheckIn = daysBeforeCheckIn;
     }
 }

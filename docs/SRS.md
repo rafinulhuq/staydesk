@@ -409,7 +409,7 @@ The app must be secure by default, correct under concurrent bookings, correct wh
 
 | ID | Area | Requirement |
 |----|------|-------------|
-| NFR-1 | Security | Passwords hashed by Identity. JWT secret, connection strings, SMTP settings and seed passwords come from environment variables or user-secrets, never from committed files. `.env` is git-ignored. Only `.env.example` is committed |
+| NFR-1 | Security | Passwords hashed by Identity. JWT secret, connection strings, SMTP settings and seed passwords come from environment variables or user-secrets, never from committed files. `.env` is git-ignored. Only `.env.example` is committed. Exception: local-only defaults in `docker-compose.yml`/`.env.example` (the dev database password and the demo account passwords, which the README publishes anyway); the deployed demo overrides all of them |
 | NFR-2 | Security | Role- and ownership-based authorization on every endpoint. A Guest requesting another guest's booking gets 404 |
 | NFR-3 | Security | CORS allows only the configured frontend origin. `ForwardedHeaders` is configured for the proxy, so client IPs are real. Rate limiting is 10 requests per minute per IP on `/auth/login`, `/auth/register` and `/auth/refresh` (not `/auth/me`) |
 | NFR-4 | Security | Input validated server-side. EF parameterized queries only. Security headers middleware (CSP, X-Content-Type-Options, Referrer-Policy, frame-ancestors) |
@@ -656,4 +656,5 @@ Start now with 1a.
 | API | Added `/users/me`, `/users/{id}/status`, `/amenities`, `/pricing/preview`, `/bookings/{id}/history`, `/bookings/{id}/cancellation-quote`, `/no-show`, reactivate endpoints; error codes; 422/429 |
 | NFR | Rate limit scope + ForwardedHeaders, token redaction, load-seed performance, NFR-13 GDPR, OPS-1 nightly reset, OPS-2 migration bundle |
 | Build plan / prompt | Sub-features instead of whole phases; SRS lives in the repo; ask on high-impact ambiguity |
+| Rev 2.2 (phase 1c, 2026-11-16) | NFR-1 allows local-only committed defaults for the dev DB and public demo passwords so `docker compose up` needs no setup |
 | Rev 2.1 (phase 1b, 2026-11-16) | User: no global filter, unique NormalizedEmail, snake_case Identity tables; Room.ImageUrls stored as `text[]` (native Npgsql mapping) instead of `jsonb` |

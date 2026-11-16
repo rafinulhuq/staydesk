@@ -110,19 +110,22 @@ This repo must read as work by one developer who understands every line. These r
 
 ## Commands
 
-Verified in 1b. The api and web compose services arrive in 1c, lint in 1d.
+Verified in 1c. The web compose service arrives later; lint arrives in 1d.
 
 ```bash
-docker compose up -d --wait    # db (PostgreSQL 16) + mail (Mailpit UI on http://localhost:8025)
-dotnet tool restore            # dotnet-ef from dotnet-tools.json
-dotnet build -warnaserror      # backend, from repo root
-dotnet test                    # unit + integration (Testcontainers needs Docker)
+docker compose up -d --build --wait   # db + mail (UI :8025) + api (:8080), migrates and seeds
+dotnet tool restore                   # dotnet-ef from dotnet-tools.json
+dotnet build -warnaserror             # backend, from repo root
+dotnet test                           # all tests (Microsoft.Testing.Platform; Testcontainers needs Docker)
+dotnet test --project tests/StayDesk.IntegrationTests
 
-# API needs ConnectionStrings:Default (once per machine):
+# Running the API outside Docker needs these once per machine (user-secrets):
 dotnet user-secrets set ConnectionStrings:Default "Host=localhost;Port=5432;Database=staydesk;Username=staydesk;Password=staydesk_dev" --project src/StayDesk.Api
-dotnet run --project src/StayDesk.Api   # http://localhost:5095, OpenAPI at /openapi/v1.json
+dotnet user-secrets set Seed:AdminPassword Admin123 --project src/StayDesk.Api   # also StaffPassword, GuestPassword
+docker compose up -d --wait db mail
+dotnet run --project src/StayDesk.Api   # http://localhost:5095: /health, /swagger, /openapi/v1.json
 
-# Migrations (the startup project reads the connection string from user-secrets):
+# Migrations:
 dotnet ef migrations add <Name> --project src/StayDesk.Infrastructure --startup-project src/StayDesk.Api --output-dir Persistence/Migrations
 dotnet ef database update --project src/StayDesk.Infrastructure --startup-project src/StayDesk.Api
 

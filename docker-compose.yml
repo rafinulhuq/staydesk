@@ -1,5 +1,5 @@
-# Local development stack. The api and web services are added once they have
-# something to serve (phase 1c onward).
+# Local development stack: `docker compose up` starts the database, mail catcher and API.
+# The web service is added once the Angular app talks to the API.
 services:
   db:
     image: postgres:16.16-alpine
@@ -16,6 +16,24 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: src/StayDesk.Api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB:-staydesk};Username=${POSTGRES_USER:-staydesk};Password=${POSTGRES_PASSWORD:-staydesk_dev}
+      Seed__DemoData: "true"
+      # Demo account passwords are public (README); set real ones on the deployed demo.
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-Admin123}
+      Seed__StaffPassword: ${SEED_STAFF_PASSWORD:-Staff123}
+      Seed__GuestPassword: ${SEED_GUEST_PASSWORD:-Guest123}
+    ports:
+      - "${API_PORT:-8080}:8080"
 
   mail:
     image: axllent/mailpit:v1.33.1
