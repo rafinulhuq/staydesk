@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\StayDesk.Domain\StayDesk.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StayDesk.Api/StayDesk.Api.csproj" />
+    <Project Path="src/StayDesk.Application/StayDesk.Application.csproj" />
+    <Project Path="src/StayDesk.Domain/StayDesk.Domain.csproj" />
+    <Project Path="src/StayDesk.Infrastructure/StayDesk.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/StayDesk.IntegrationTests/StayDesk.IntegrationTests.csproj" />
+    <Project Path="tests/StayDesk.UnitTests/StayDesk.UnitTests.csproj" />
+  </Folder>
+</Solution>

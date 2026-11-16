@@ -109,11 +109,14 @@ This repo must read as work by one developer who understands every line. These r
 
 ## Commands
 
-_Fill in after sub-feature 1a._
+Verified in 1a. Docker Compose arrives in 1b, lint in 1d.
 
 ```bash
-docker compose up                      # full stack
-dotnet build -warnaserror              # backend build
-dotnet test                            # unit + integration (needs Docker)
-cd client/staydesk-web && npm run lint && npm test && npm run build
+dotnet build -warnaserror      # backend, from repo root
+dotnet test                    # unit + integration
+cd client/staydesk-web
+npm test -- --watch=false      # Vitest
+npm run build
+npm start                      # dev server on http://localhost:4200
+dotnet run --project src/StayDesk.Api   # API on http://localhost:5095, OpenAPI at /openapi/v1.json
 ```

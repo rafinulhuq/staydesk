@@ -2,13 +2,14 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-16 21:25 +06
+**Last updated:** 2026-11-16 21:30 +06
 
 ## Where things stand
 
-- **Phase:** specification done; no code yet. The next build step is **Phase 1a** (solution and Angular skeleton, SRS §10), once the owner says go.
-- **Repo:** `main` on GitHub is the only branch. Latest commit: `docs: add SRS rev 2, design decisions and agent rules`.
+- **Phase:** 1a done (solution + Angular skeleton). **Next: 1b**: Docker Compose with Postgres healthcheck, EF Core DbContext, all entities, constraints and the first migration (SRS §5, §9, BOOK-2 constraint).
+- **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
+- **Open owner decisions:** T-003, T-004, T-005, T-016 (xUnit v2 vs v3).
 
 ## Files and what each one is for
 
@@ -37,11 +38,13 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Gotchas found so far
 
+- **This machine:** the agent shell runs inside the VS Code Flatpak sandbox. `dotnet` and `docker` exist only on the host, so run them as `flatpak-spawn --host --directory=<repo> sh -c '…'`. Node/npm work directly in the sandbox.
+- npm 11 blocks package install scripts by default. Angular builds and tests pass without them (T-014).
 - `pdftoppm`/poppler isn't installed on the dev machine, so the Read tool can't render PDF pages. Text extraction used `pypdf` in a temporary venv.
 - Versions were verified on 2026-11-16: .NET 10, Angular 22, ngx-translate v18, ng2-charts v10+, Shouldly (BSD). FluentAssertions v8+ needs a commercial licence and is not used. Details are in the SRS §3 version note.
 - The exclusion constraint SQL in BOOK-2 uses snake_case, so `EFCore.NamingConventions` must be configured, or the SQL changed to match.
 
 ## Next steps
 
-1. Owner decides T-003 (PDF and plan), T-004 (licence) and T-005 (sign-off on D1–D5).
-2. Phase 1a: create the .NET solution with the four projects and two test projects, plus the Angular 22 app in `client/staydesk-web`. Make sure both build with zero warnings, then replace the placeholder commands in `AGENTS.md` (T-012) and confirm Angular Material 22 compatibility (T-009).
+1. Owner decides T-016 (xUnit version) before 1c; T-003/T-004/T-005 whenever.
+2. Phase 1b: `docker-compose.yml` (db with `pg_isready` healthcheck, Mailpit), Npgsql + `EFCore.NamingConventions`, DbContext with all §5 entities, `btree_gist` + exclusion constraint, first migration. Check T-008 (xmin migration).
