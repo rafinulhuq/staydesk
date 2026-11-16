@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-17 04:30 +06
+**Last updated:** 2026-11-17 05:00 +06
 
 **Status values:**
 - **OPEN:** needs doing.
@@ -42,6 +42,7 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 | T-042 | 2026-11-17 | P3 | OPEN | api | `/auth/refresh` shares the 10/min auth rate limit, and every full page load refreshes once. An admin reloading 11 times in a minute gets a 429 on the restore and starts logged out (the token is kept since 2d, so the next reload works). | Give refresh its own, higher limit (e.g. 30/min) when NFR-3 is revisited with T-029 |
 | T-043 | 2026-11-17 | P3 | OPEN | dev | The 2d live check created a property "Pension am Dom" (Würzburg) in the local dev database. The seeder skips inventory when any property exists, so it stays until the DB volume is recreated. | Deactivate it in /admin/properties, or recreate the local DB volume (owner's call) |
 | T-044 | 2026-11-17 | P3 | OPEN | i18n | Amenity names ("Breakfast", "City view") are seed data in English and show untranslated in the German UI. §5 has no translated name field. | Decide in 7a: translation keys per amenity icon, or German seed names |
+| T-045 | 2026-11-17 | P3 | OPEN | seed | Seasonal seed rules use the current year (Oktoberfest 19 Sep–4 Oct, Christmas markets 24 Nov–23 Dec). Once a season has passed, the demo can't show it until next year's reseed. | Decide with the nightly reset (7d): seed the next occurrence instead of this year's |
 | T-027 | 2026-11-17 | P2 | OPEN | career | Owner asked for a full interview question bank once the project is complete. Talking points per sub-feature are collected in `notes/interview-prep.md` (git-ignored). | After 7e: write questions + model answers from that file and the final code |
 | T-010 | 2026-11-16 | P2 | OPEN | ops | The free hosting choice for the API isn't made. Render was checked; Fly.io and Azure were not. | Decide before Phase 7d |
 
@@ -49,6 +50,7 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 
 | ID | Closed | Item | Commit |
 |----|--------|------|--------|
+| — | 2026-11-17 | Phase 3b: `POST /pricing/quote` (public, active rooms only) and `POST /pricing/preview` (Admin, draft rule built in memory, returns current and with-rule quotes). SRCH-2 date rules (check-in not before today at the property, 1–30 nights), PRICE-2 rule validation (−90..+300, type-specific fields only); nested validation fields camelCased per segment (`rule.percentChange`). 13 integration + 11 unit tests; 91 backend tests total | Phase 3b commit |
 | — | 2026-11-17 | Phase 3a: `PricingEngine` (Domain, pure, D9) with one strategy per rule type (Seasonal inclusive dates, Weekend Fri/Sat nights, LengthOfStay, LastMinute against today at the property); multiplicative stacking, one AwayFromZero rounding per night, 1.00 floor, total = sum of nights; property and room rules both apply. 15 unit tests (19 cases), mutation-checked; 70 backend tests total | Phase 3a commit |
 | — | 2026-11-17 | Phase 2d: admin properties and rooms pages (Admin-only child routes, back-office tab bar), list tables with show-inactive toggle, deactivate with confirm dialog, reactivate, PROP-5 warning dialog, create/edit forms with server field errors, room version conflict (409) with reload; locale-aware EUR and date pipes. Header language switch is plain buttons now (first load 601 → 526 kB). Fixed: a 429 or network error on refresh no longer drops the session. 28 Vitest; live check in Chrome over CDP at 1280 and 900 px | Phase 2d commit |
 | T-034 | 2026-11-17 | Admin rooms table sorts room numbers naturally (`Intl.Collator` numeric); the API still orders as text, the public pages (3d) must sort the same way | Phase 2d commit |

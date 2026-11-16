@@ -61,7 +61,9 @@ public sealed class ProblemExceptionHandler(IProblemDetailsService problemDetail
         };
 
     // Field names match the JSON the Angular form sent (camelCase), so it can show each
-    // message next to its field.
+    // message next to its field. Nested names are camelCased per segment: "Rule.PercentChange"
+    // becomes "rule.percentChange".
     private static string JsonFieldName(string propertyName) =>
-        propertyName.Length == 0 ? "" : char.ToLowerInvariant(propertyName[0]) + propertyName[1..];
+        string.Join('.', propertyName.Split('.').Select(segment =>
+            segment.Length == 0 ? "" : char.ToLowerInvariant(segment[0]) + segment[1..]));
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using StayDesk.Domain.Bookings;
+using StayDesk.Domain.Pricing;
 using StayDesk.Domain.Properties;
 using StayDesk.Domain.Rooms;
 
@@ -14,6 +15,7 @@ public interface IStayDeskDbContext
     DbSet<Room> Rooms { get; }
     DbSet<Amenity> Amenities { get; }
     DbSet<Booking> Bookings { get; }
+    DbSet<PriceRule> PriceRules { get; }
 
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
     Task<int> SaveChangesAsync(CancellationToken ct = default);

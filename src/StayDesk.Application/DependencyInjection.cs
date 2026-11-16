@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using StayDesk.Application.Pricing;
 using StayDesk.Application.Properties;
 using StayDesk.Application.Rooms;
 
@@ -12,6 +13,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
         services.AddScoped<PropertyService>();
         services.AddScoped<RoomService>();
+        services.AddScoped<PricingService>();
         return services;
     }
 }

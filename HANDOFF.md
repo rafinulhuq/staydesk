@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 04:30 +06
+**Last updated:** 2026-11-17 05:00 +06
 
 ## Where things stand
 
-- **Phase:** 3a done (pricing engine, D9). **Next: 3b**: `POST /pricing/quote` (public) and `POST /pricing/preview` (Admin, PRICE-8) on top of `PricingEngine.Quote`; today = `Property.TodayAt(TimeProvider.GetUtcNow())`.
+- **Phase:** 3b done (quote and preview endpoints). **Next: 3c**: `GET /rooms/search` (SRCH-1..4): SQL availability filter with `Booking.IsActiveAt`, then totals from `PricingEngine` in memory for `maxPrice` and price sort, then paging.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-003, T-004, T-005, T-028, T-032, T-037.
@@ -65,4 +65,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Phase 3b: list the requirement IDs (PRICE-4, PRICE-8, §6 `/pricing/*`) and the files to touch. Load rules through the soft-delete filter (the engine doesn't check `IsActive`). Quote for an inactive room or property should be 404.
+2. Phase 3c: list the requirement IDs (SRCH-1..4, NFR-6) and the files to touch. Reuse `StayDatesValidator` (`IStayDates`) and the "check-in not before today at the property" check in `PricingService`; load all candidate rooms' rules in one query, not per room.
