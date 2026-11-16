@@ -2,14 +2,15 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 01:10 +06
+**Last updated:** 2026-11-17 02:05 +06
 
 ## Where things stand
 
-- **Phase:** 1d done; Phase 1 complete. CI is green on GitHub (build, 12 tests, coverage, lint, Prettier, Vitest, production build). **Next: 2a**: auth (register, login, JWT, rotating refresh tokens, roles). Read SRS §10 and the AUTH-* requirements first.
+- **Phase:** 2a done (auth API: register, login, refresh with reuse detection, logout, me; lockout, rate limit, Problem Details). **Next: 2b**: property, room and amenity CRUD API with soft delete and reactivation. Check T-028 first: the users admin endpoints may be added to 2b.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
-- **Open owner decisions:** T-003, T-004, T-005.
+- **Open owner decisions:** T-003, T-004, T-005, T-028, T-032.
+- **Interview notes:** `notes/interview-prep.md` (git-ignored, local only). Append 2–3 talking points there at the end of every sub-feature.
 
 ## Files and what each one is for
 
@@ -42,6 +43,8 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Local secrets on this machine (user-secrets for `src/StayDesk.Api`): `ConnectionStrings:Default` and `Seed:{Admin,Staff,Guest}Password`. A fresh clone needs them set (see `AGENTS.md` Commands), or use `docker compose up`.
 - Tests use xUnit v3 on Microsoft.Testing.Platform (D7). Pass `TestContext.Current.CancellationToken` to async calls (analyzer xUnit1051 is an error). `dotnet test --project <csproj>` to run one project.
 - Testcontainers finds Docker Desktop through the Docker context; no `DOCKER_HOST` needed. The local API connection string is in user-secrets on this machine.
+- `curl localhost:…` from the sandbox can't reach the host. Run HTTP smoke tests on the host: `flatpak-spawn --host sh -s < script.sh`.
+- Integration tests raise the auth rate limit with `RateLimiting:AuthPermitLimit` (all test requests share one IP); the 429 test sets it back to 10 on a derived factory.
 - GitHub CLI `gh` works in the sandbox and is logged in; `gh run list -L1` / `gh run view <id>` to check CI after a push.
 - `ng add` fails under npm 11 (EALLOWSCRIPTS). Workaround: `npm install -D <pkg>`, then `npx ng add <pkg>`, then `npm install` again to finish the schematic's installs.
 - coverlet.MTP: pass `--coverlet-include "[StayDesk.*]*"` whenever you pass an exclude, or it instruments xunit's assemblies too (and once ran only the unit tests).
@@ -53,4 +56,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Phase 2a: auth. Start by listing the AUTH-* IDs and the files to touch, per `AGENTS.md`.
+2. Phase 2b: list the PROP-* IDs and the files to touch, per `AGENTS.md`.

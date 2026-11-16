@@ -110,7 +110,7 @@ This repo must read as work by one developer who understands every line. These r
 
 ## Commands
 
-Verified in 1d. The web compose service arrives later. CI (`.github/workflows/ci.yml`) runs the same build, test, lint and format commands.
+Verified in 2a. The web compose service arrives later. CI (`.github/workflows/ci.yml`) runs the same build, test, lint and format commands.
 
 ```bash
 docker compose up -d --build --wait   # db + mail (UI :8025) + api (:8080), migrates and seeds
@@ -123,6 +123,7 @@ dotnet test --coverlet --coverlet-output-format cobertura --coverlet-include "[S
 # Running the API outside Docker needs these once per machine (user-secrets):
 dotnet user-secrets set ConnectionStrings:Default "Host=localhost;Port=5432;Database=staydesk;Username=staydesk;Password=staydesk_dev" --project src/StayDesk.Api
 dotnet user-secrets set Seed:AdminPassword Admin123 --project src/StayDesk.Api   # also StaffPassword, GuestPassword
+dotnet user-secrets set Jwt:SigningKey "$(head -c 48 /dev/urandom | base64)" --project src/StayDesk.Api   # 32+ bytes
 docker compose up -d --wait db mail
 dotnet run --project src/StayDesk.Api   # http://localhost:5095: /health, /swagger, /openapi/v1.json
 

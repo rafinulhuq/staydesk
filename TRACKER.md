@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-17 01:10 +06
+**Last updated:** 2026-11-17 02:05 +06
 
 **Status values:**
 - **OPEN:** needs doing.
@@ -30,12 +30,20 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 | T-023 | 2026-11-16 | P3 | OPEN | ops | Docker images use floating minor tags `mcr.microsoft.com/dotnet/sdk:10.0` / `aspnet:10.0`, so patch updates arrive automatically. | Pin exact digests or patch tags before deploy (7d) if reproducibility matters |
 | T-025 | 2026-11-17 | P3 | OPEN | ci | Actions are pinned to major tags (`actions/checkout@v7` etc.) and ReportGenerator to `5.6.0`, not to commit SHAs. | Pin to SHAs or add Dependabot for actions before deploy (7d) if supply-chain hardening matters |
 | T-026 | 2026-11-17 | P2 | OPEN | ci | SRS §9 sets an 80% coverage target for Application, but CI only reports coverage; it doesn't fail below the target. Application has no code yet. | Add a threshold once Application has services (2a/3a) |
+| T-028 | 2026-11-17 | P1 | DECIDE | spec | AUTH-3 role change, AUTH-6 deactivation (incl. revoking refresh tokens), AUTH-7 `PUT /users/me` and `GET /users` are in §4/§6 but in no §10 sub-feature. 2a only enforces the IsActive check on login/refresh. | Recommended: add them to 2b (admin API) and the account page to 2c; owner confirms, then amend §10 |
+| T-029 | 2026-11-17 | P1 | OPEN | security | NFR-3 ForwardedHeaders not configured. The auth rate limit partitions on the direct peer IP, so behind nginx or a host's proxy every client would share one limit. | Configure `ForwardedHeaders` with the known proxy when the `web` nginx service (2c/3d) or deploy (7d) lands; add a test |
+| T-030 | 2026-11-17 | P1 | OPEN | security | NFR-3 CORS (only the configured frontend origin) not configured yet; nothing calls the API cross-origin so far. | Add in 2c with the Angular auth work |
+| T-031 | 2026-11-17 | P3 | OPEN | api | A malformed JSON body gets MVC's automatic 400 without the `code` extension (validation errors and known failures have it). | Customise `InvalidModelStateResponseFactory` if the Angular client needs it |
+| T-032 | 2026-11-17 | P3 | DECIDE | tests | SRS §3 and AGENTS.md name Shouldly, but every test so far uses xUnit `Assert`. Mixing both would be two ways of doing one thing. | Owner picks: add Shouldly and convert, or drop it from the SRS |
+| T-033 | 2026-11-17 | P3 | OPEN | security | Access tokens are stateless: after logout or deactivation an already issued access token still works until it expires (max 15 min). Accepted tradeoff of short-lived JWTs. | Mention in README security notes (7e) |
+| T-027 | 2026-11-17 | P2 | OPEN | career | Owner asked for a full interview question bank once the project is complete. Talking points per sub-feature are collected in `notes/interview-prep.md` (git-ignored). | After 7e: write questions + model answers from that file and the final code |
 | T-010 | 2026-11-16 | P2 | OPEN | ops | The free hosting choice for the API isn't made. Render was checked; Fly.io and Azure were not. | Decide before Phase 7d |
 
 ## Done log
 
 | ID | Closed | Item | Commit |
 |----|--------|------|--------|
+| — | 2026-11-17 | Phase 2a: register/login/refresh/logout/me under `/api/v1/auth`, JWT (15 min) + rotating refresh tokens (7 days, hashed) with reuse detection and an atomic claim, Guest role on register, lockout with demo exemption, IsActive check, 10/min auth rate limit, Problem Details with `code`, FluentValidation filter, Swagger Authorize. 32 tests | Phase 2a commit |
 | — | 2026-11-17 | Phase 1d: GitHub Actions CI (api job: restore, build `-warnaserror`, tests with coverage, ReportGenerator summary + artifact; web job: lint, Prettier check, Vitest, production build). angular-eslint 22.7.0 added; 4 generated files reformatted with Prettier | Phase 1d commit |
 | T-024 | 2026-11-17 | First CI run green on GitHub (run 43934822555): web 23 s, api 47 s, 12/12 tests incl. Testcontainers, coverage artifact uploaded | Phase 1d commit |
 | T-021 | 2026-11-17 | Coverage via coverlet.MTP 10.1.1 (MIT), the MTP extension from the coverlet project | Phase 1d commit |

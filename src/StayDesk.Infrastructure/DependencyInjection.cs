@@ -1,7 +1,9 @@
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StayDesk.Application.Auth;
 using StayDesk.Infrastructure.Identity;
 using StayDesk.Infrastructure.Persistence;
 using StayDesk.Infrastructure.Persistence.Seeding;
@@ -38,6 +40,13 @@ public static class DependencyInjection
             })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<StayDeskDbContext>();
+
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.Section))
+            .Validate(o => Encoding.UTF8.GetByteCount(o.SigningKey) >= 32,
+                "Jwt:SigningKey must be at least 32 bytes. Use user-secrets or the Jwt__SigningKey environment variable.")
+            .ValidateOnStart();
+        services.AddScoped<IAuthService, AuthService>();
 
         services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.Section));
         services.AddScoped<DbSeeder>();

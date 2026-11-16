@@ -32,6 +32,8 @@ services:
       Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-Admin123}
       Seed__StaffPassword: ${SEED_STAFF_PASSWORD:-Staff123}
       Seed__GuestPassword: ${SEED_GUEST_PASSWORD:-Guest123}
+      # Local-only signing key; anyone can read it here, so tokens from this stack are worthless elsewhere.
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-local-dev-only-signing-key-change-me-0123456789}
     ports:
       - "${API_PORT:-8080}:8080"
 

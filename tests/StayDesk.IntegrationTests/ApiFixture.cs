@@ -19,7 +19,9 @@ public sealed class ApiFixture : IAsyncLifetime
             .UseSetting("Seed:DemoData", "true")
             .UseSetting("Seed:AdminPassword", "Admin123")
             .UseSetting("Seed:StaffPassword", "Staff123")
-            .UseSetting("Seed:GuestPassword", "Guest123"));
+            .UseSetting("Seed:GuestPassword", "Guest123")
+            .UseSetting("Jwt:SigningKey", "integration-tests-signing-key-0123456789abcdef")
+            .UseSetting("RateLimiting:AuthPermitLimit", "1000"));
 
         // The factory starts lazily on first use; start it now so every test sees a seeded database.
         _ = Factory.Server;
