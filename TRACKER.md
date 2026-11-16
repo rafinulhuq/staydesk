@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-16 21:20 +06
+**Last updated:** 2026-11-16 21:25 +06
 
 **Status values:**
 - **OPEN:** needs doing.

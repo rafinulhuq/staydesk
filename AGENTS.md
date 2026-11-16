@@ -4,6 +4,8 @@ Accommodation booking platform (public site + staff back-office). Portfolio proj
 
 **Source of truth: `docs/SRS.md`.** Follow it exactly. If code and the SRS disagree, the SRS wins. Propose an SRS change instead of silently diverging from it.
 
+**Start here: `HANDOFF.md`** (current state and how to resume). Update it at the end of every session or sub-feature.
+
 **Open work: `TRACKER.md`.** It holds open work, unverified items and pending decisions. Read it at session start, and update it in the same step as any new finding or decision.
 
 ## Stack (do not substitute)
