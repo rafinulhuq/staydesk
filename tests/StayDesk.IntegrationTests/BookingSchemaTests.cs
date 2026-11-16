@@ -11,6 +11,7 @@ namespace StayDesk.IntegrationTests;
 public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 16, 12, 0, 0, TimeSpan.Zero);
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
     public async Task Overlapping_active_bookings_for_one_room_are_rejected_with_exclusion_violation()
@@ -18,10 +19,10 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
         var (room, guest) = await SeedRoomAndGuest();
         await using var db = fixture.CreateContext();
         db.Bookings.Add(NewBooking(room, guest, new(2026, 12, 10), new(2026, 12, 13)));
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(Ct);
 
         db.Bookings.Add(NewBooking(room, guest, new(2026, 12, 12), new(2026, 12, 14)));
-        var ex = await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        var ex = await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync(Ct));
 
         var pg = Assert.IsType<PostgresException>(ex.InnerException);
         Assert.Equal(PostgresErrorCodes.ExclusionViolation, pg.SqlState);
@@ -36,7 +37,7 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
         db.Bookings.Add(NewBooking(room, guest, new(2026, 12, 10), new(2026, 12, 12)));
         db.Bookings.Add(NewBooking(room, guest, new(2026, 12, 12), new(2026, 12, 14)));
 
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(Ct);
     }
 
     [Fact]
@@ -47,11 +48,11 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
         await using (var db = fixture.CreateContext())
         {
             db.Bookings.Add(booking);
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(Ct);
         }
 
         await using var read = fixture.CreateContext();
-        var loaded = await read.Bookings.SingleAsync(b => b.Id == booking.Id);
+        var loaded = await read.Bookings.SingleAsync(b => b.Id == booking.Id, Ct);
 
         Assert.Equal(2, loaded.PriceBreakdown.Count);
         Assert.Equal(new DateOnly(2026, 12, 18), loaded.PriceBreakdown[0].Date);
@@ -78,7 +79,7 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
             CreatedAt = Now,
         };
         db.AddRange(property, room, guest);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(Ct);
         return (room, guest);
     }
 

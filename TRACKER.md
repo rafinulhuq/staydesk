@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-16 22:09 +06
+**Last updated:** 2026-11-16 22:15 +06
 
 **Status values:**
 - **OPEN:** needs doing.
@@ -22,17 +22,18 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 | T-006 | 2026-11-16 | P2 | OPEN | spec | The PDF layout was never checked: tables seemed to run past the next heading, and the architecture diagram on page 3 was never viewed. Only matters if the PDF is still shared. | Open the PDF and check pages 3, 11–14 and 17–18 |
 | T-014 | 2026-11-16 | P2 | OPEN | frontend | npm 11 blocked install scripts for esbuild, lmdb, msgpackr-extract and @parcel/watcher. Build and tests pass without them. | Recheck if a build or watch issue appears; approve individually with `npm approve-scripts <pkg>` only if needed |
 | T-015 | 2026-11-16 | P2 | OPEN | frontend | The skeleton pages have hard-coded headings (StayDesk, My bookings, Dashboard). NFR-10 requires translation files. | Move them to en.json/de.json when ngx-translate is added (2c) |
-| T-016 | 2026-11-16 | P2 | DECIDE | tests | The `xunit` template on SDK 10.0.113 gives xUnit **v2** (2.9.3). SRS says xUnit without a version. I believe v3 is the actively developed line, but haven't verified this. | Decide v2 or v3 before the first real tests (1c / 3a) |
 | T-018 | 2026-11-16 | P3 | OPEN | frontend | The Angular CLI's default `favicon.ico` is still in `public/`. | Replace with a real icon in 7a |
 | T-017 | 2026-11-16 | P3 | OPEN | tests | `DependencyRuleTests` now has Domain types to check, but Application is still empty, so its test passes trivially. | Recheck when Application gets its first service (2a) |
 | T-019 | 2026-11-16 | P3 | OPEN | backend | Foreign key names on the renamed Identity tables still say `asp_net_users` (e.g. `fk_bookings_asp_net_users_guest_id`). Cosmetic only. | Leave; rename only if it confuses anyone |
 | T-020 | 2026-11-16 | P2 | OPEN | backend | `Booking.price_breakdown` is a nullable jsonb column: EF can't mark an owned JSON collection as required. The constructor always sets it. | Seeder and tests must never create a booking without nights |
+| T-021 | 2026-11-16 | P2 | OPEN | ci | Coverage: coverlet's VSTest collector was removed with the switch to Microsoft.Testing.Platform (D7). | Pick an MTP coverage extension when CI coverage upload is built (1d) |
 | T-010 | 2026-11-16 | P2 | OPEN | ops | The free hosting choice for the API isn't made. Render was checked; Fly.io and Azure were not. | Decide before Phase 7d |
 
 ## Done log
 
 | ID | Closed | Item | Commit |
 |----|--------|------|--------|
+| T-016 | 2026-11-16 | Owner chose xUnit v3: xunit.v3 4.0.3 on Microsoft.Testing.Platform (D7) | xUnit v3 commit |
 | T-007 | 2026-11-16 | Confirmed by the integration test: an overlap surfaces as `DbUpdateException` → `PostgresException` with SqlState `23P01` and ConstraintName `ex_bookings_no_overlap` | Phase 1b commit |
 | T-008 | 2026-11-16 | `uint Version` + `IsRowVersion()` appears as `xmin` in the generated migration, but Npgsql creates no column (checked with `\d bookings`) | Phase 1b commit |
 | — | 2026-11-16 | Phase 1b: Docker Compose (db + mail, healthchecks), all §5 entities, DbContext, InitialCreate migration with exclusion constraint, 3 Testcontainers tests | Phase 1b commit |

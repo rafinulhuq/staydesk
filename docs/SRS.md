@@ -103,7 +103,7 @@ The Angular app calls the API over REST and receives live booking events over Si
 | Frontend | Angular (latest stable), standalone components, Angular Material, RxJS, Signals for local component state |
 | Charts | ng2-charts (Chart.js) |
 | i18n | ngx-translate with `en.json` and `de.json` |
-| Backend testing | xUnit, Shouldly, Testcontainers (PostgreSQL) |
+| Backend testing | xUnit v3 (Microsoft.Testing.Platform runner), Shouldly, Testcontainers (PostgreSQL) |
 | Frontend testing | Vitest (the Angular CLI default since Angular 21; Karma is deprecated) |
 | DevOps | Docker, Docker Compose, GitHub Actions |
 | Dev email | Mailpit container |

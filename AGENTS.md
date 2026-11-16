@@ -14,7 +14,7 @@ Accommodation booking platform (public site + staff back-office). Portfolio proj
 - **Data access:** EF Core 10 + Npgsql + PostgreSQL 16+ (`btree_gist`), snake_case naming via `EFCore.NamingConventions`.
 - **Backend libraries:** Identity + JWT + rotating refresh tokens, FluentValidation, SignalR, Serilog, OpenAPI + Swagger UI.
 - **Frontend:** Angular 22, standalone components, OnPush, Angular Material, RxJS, ngx-translate v18 (en/de), ng2-charts.
-- **Tests:** xUnit + Shouldly + Testcontainers (PostgreSQL); Vitest for Angular. No in-memory or SQLite providers in integration tests.
+- **Tests:** xUnit v3 (Microsoft.Testing.Platform runner) + Shouldly + Testcontainers (PostgreSQL); Vitest for Angular. No in-memory or SQLite providers in integration tests.
 - **Ops:** Docker Compose, GitHub Actions.
 
 Before adding any package: confirm it is free for this use, then name it and say what it's for.

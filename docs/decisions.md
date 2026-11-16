@@ -82,3 +82,20 @@ One entry per decision that shaped the SRS. Add new entries at the bottom; don't
 **Why.** Free hosts sleep, so a job can't be trusted to run on time. Correctness that depends on it would fail silently on the demo.
 
 **Cost.** Expired holds stay in Pending status until the job runs or someone books the room, so dashboard counts must also apply the expiry filter.
+
+---
+
+## D7. xUnit v3 on Microsoft.Testing.Platform
+
+**Date:** 2026-11-16 · **Status:** accepted
+
+**Context.** The `xunit` template on SDK 10.0.113 installs xUnit v2 (2.9.3, the latest v2 on NuGet). v3 is the actively developed line (4.0.x shipped August 2026).
+
+**Decision.** Use `xunit.v3` and run tests through Microsoft.Testing.Platform (`"test": { "runner": "Microsoft.Testing.Platform" }` in `global.json`). The VSTest packages (`Microsoft.NET.Test.Sdk`, `xunit.runner.visualstudio`, `coverlet.collector`) are removed.
+
+**Why.** New features and fixes land only in v3. On the .NET 10 SDK, running v3 through the old VSTest path is an error, and MTP is the supported route.
+
+**Cost.**
+- Test projects are executables.
+- Async test calls must pass `TestContext.Current.CancellationToken`, or the xUnit1051 analyzer fails the build.
+- Code coverage needs an MTP extension instead of coverlet's VSTest collector (decided in 1d).

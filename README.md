@@ -27,7 +27,7 @@ These are specified in [`docs/SRS.md`](docs/SRS.md), not yet built:
 | API | ASP.NET Core 10, Clean Architecture, EF Core 10 + Npgsql, Identity + JWT, SignalR, FluentValidation, Serilog |
 | Database | PostgreSQL 16+ |
 | Frontend | Angular 22, Angular Material, RxJS, ngx-translate, ng2-charts |
-| Tests | xUnit, Shouldly, Testcontainers, Vitest |
+| Tests | xUnit v3, Shouldly, Testcontainers, Vitest |
 | Ops | Docker Compose, GitHub Actions |
 
 Design decisions and their tradeoffs: [`docs/decisions.md`](docs/decisions.md).
