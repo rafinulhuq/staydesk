@@ -1,0 +1,101 @@
+<div class="page-header">
+  <h1>
+    @if (id) {
+      {{ 'admin.rooms.editTitle' | translate: { roomNumber: loadedRoomNumber() } }}
+    } @else {
+      {{ 'admin.rooms.newTitle' | translate }}
+    }
+  </h1>
+</div>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'admin.rooms.notFound' | translate }}
+      <a mat-button routerLink="/admin/rooms">{{ 'admin.common.backToList' | translate }}</a>
+    </p>
+  }
+  @default {
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field>
+        <mat-label>{{ 'admin.rooms.fields.roomNumber' | translate }}</mat-label>
+        <input matInput formControlName="roomNumber" />
+        @if (form.controls.roomNumber.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        } @else if (form.controls.roomNumber.hasError('server')) {
+          <mat-error>{{ form.controls.roomNumber.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'admin.rooms.fields.type' | translate }}</mat-label>
+        <mat-select formControlName="type">
+          @for (type of roomTypes; track type) {
+            <mat-option [value]="type">{{ 'roomTypes.' + type | translate }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'admin.rooms.fields.maxGuests' | translate }}</mat-label>
+        <input matInput type="number" min="1" max="10" formControlName="maxGuests" />
+        @if (form.controls.maxGuests.invalid) {
+          <mat-error>{{ 'admin.rooms.maxGuestsRange' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'admin.rooms.fields.basePrice' | translate }}</mat-label>
+        <input matInput type="number" min="0.01" step="0.01" formControlName="basePrice" />
+        <span matTextSuffix>€</span>
+        @if (form.controls.basePrice.hasError('server')) {
+          <mat-error>{{ form.controls.basePrice.getError('server') }}</mat-error>
+        } @else if (form.controls.basePrice.invalid) {
+          <mat-error>{{ 'admin.rooms.basePricePositive' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>{{ 'admin.rooms.fields.amenities' | translate }}</mat-label>
+        <mat-select formControlName="amenityIds" multiple>
+          @for (amenity of amenities(); track amenity.id) {
+            <mat-option [value]="amenity.id">{{ amenity.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="full-width" subscriptSizing="dynamic">
+        <mat-label>{{ 'admin.rooms.fields.imageUrls' | translate }}</mat-label>
+        <textarea matInput formControlName="imageUrls" rows="3"></textarea>
+        <mat-hint>{{ 'admin.rooms.imageUrlsHint' | translate }}</mat-hint>
+        @if (form.controls.imageUrls.hasError('server')) {
+          <mat-error>{{ form.controls.imageUrls.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      @if (conflict()) {
+        <p class="form-error" role="alert">
+          {{ 'admin.rooms.conflict' | translate }}
+          <button mat-button type="button" (click)="reload()">
+            {{ 'admin.rooms.reload' | translate }}
+          </button>
+        </p>
+      }
+      @if (unexpectedError()) {
+        <p class="form-error" role="alert">{{ 'errors.unexpected' | translate }}</p>
+      }
+
+      <div class="form-actions">
+        <button mat-flat-button type="submit" [disabled]="submitting() || conflict()">
+          {{ 'admin.common.save' | translate }}
+        </button>
+        <a mat-button routerLink="/admin/rooms" [queryParams]="{ propertyId: propertyId() }">
+          {{ 'common.cancel' | translate }}
+        </a>
+      </div>
+    </form>
+  }
+}

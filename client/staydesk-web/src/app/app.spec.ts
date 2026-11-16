@@ -1,8 +1,12 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideTranslateService } from '@ngx-translate/core';
+import { By } from '@angular/platform-browser';
 import { DashboardPage } from './admin/dashboard-page';
+import { PropertiesPage } from './admin/inventory/properties-page';
 import { MyBookingsPage } from './account/my-bookings-page';
 import { routes } from './app.routes';
 import { AuthService } from './core/auth/auth.service';
@@ -16,6 +20,8 @@ describe('app routes', () => {
       providers: [
         provideRouter(routes),
         provideTranslateService(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: AuthService,
           useValue: {
@@ -43,7 +49,22 @@ describe('app routes', () => {
   it('opens the dashboard for staff', async () => {
     setup(['Staff']);
     const harness = await RouterTestingHarness.create();
-    expect(await harness.navigateByUrl('/admin', DashboardPage)).toBeInstanceOf(DashboardPage);
+    await harness.navigateByUrl('/admin');
+    expect(harness.fixture.debugElement.query(By.directive(DashboardPage))).toBeTruthy();
+  });
+
+  it('keeps staff without the Admin role out of the inventory pages', async () => {
+    setup(['Staff']);
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/admin/properties');
+    expect(TestBed.inject(Router).url).toBe('/');
+  });
+
+  it('opens the properties page for an admin', async () => {
+    setup(['Admin', 'Staff']);
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/admin/properties');
+    expect(harness.fixture.debugElement.query(By.directive(PropertiesPage))).toBeTruthy();
   });
 
   it('sends a logged-out visitor from /admin to login', async () => {

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
@@ -17,7 +16,6 @@ import { Language, LanguageService } from './core/i18n/language.service';
     TranslatePipe,
     MatToolbarModule,
     MatButtonModule,
-    MatButtonToggleModule,
     MatProgressBarModule,
   ],
   templateUrl: './app.html',
@@ -29,6 +27,7 @@ export class App {
   protected readonly auth = inject(AuthService);
   protected readonly loading = inject(LoadingService);
   protected readonly language = inject(LanguageService);
+  protected readonly languages: readonly Language[] = ['en', 'de'];
 
   protected switchLanguage(language: Language): void {
     this.language.use(language);

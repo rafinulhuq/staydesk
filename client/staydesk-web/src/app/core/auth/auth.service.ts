@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import {
   Observable,
@@ -72,7 +72,11 @@ export class AuthService {
         tap((tokens) => this.storeTokens(tokens)),
         map((tokens) => tokens.accessToken),
         catchError((error: unknown) => {
-          this.clearSession();
+          // Only a 401 means the refresh token is dead. A 429 or a network error doesn't,
+          // and dropping the token then would log the user out for nothing.
+          if (error instanceof HttpErrorResponse && error.status === 401) {
+            this.clearSession();
+          }
           return throwError(() => error);
         }),
         finalize(() => (this.refreshInFlight = null)),
@@ -86,11 +90,14 @@ export class AuthService {
     if (!localStorage.getItem(refreshTokenKey)) {
       return;
     }
-    try {
-      await firstValueFrom(this.refreshAccessToken().pipe(switchMap(() => this.loadUser())));
-    } catch {
-      this.clearSession();
-    }
+    // On failure the user starts logged out; refreshAccessToken() already dropped the
+    // token if the API rejected it, otherwise the next reload tries again.
+    await firstValueFrom(
+      this.refreshAccessToken().pipe(
+        switchMap(() => this.loadUser()),
+        catchError(() => of(null)),
+      ),
+    );
   }
 
   private startSession(tokens: AuthTokens): Observable<CurrentUser> {

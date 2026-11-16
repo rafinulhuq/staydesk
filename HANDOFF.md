@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 03:30 +06
+**Last updated:** 2026-11-17 04:00 +06
 
 ## Where things stand
 
-- **Phase:** 2c done (Angular auth: login/register, interceptors, guard, theme, en/de). **Next: 2d**: admin properties and rooms pages (Admin only; use the 2b API, show-inactive toggle, reactivate, version conflicts).
+- **Phase:** 2d done, so Phase 2 (auth and inventory) is complete. **Next: 3a**: pricing engine with all four rule types and unit tests (PRICE-*; strategy per rule type, `today` as input, per-night rounding).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-003, T-004, T-005, T-028, T-032, T-037.
@@ -48,6 +48,9 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Application services use `IStayDeskDbContext` (D8). Admin queries must call `IgnoreQueryFilters()` to see inactive rows; public room queries also need the property filter (`db.Properties.Any(...)`), because Room has no navigation to Property.
 - `docker compose up --wait` does not wait for the API (no healthcheck, T-035); poll `/health` before smoke tests.
 - Visual checks: run the API (`docker compose up -d api`) and `npx ng serve` **on the host** (`flatpak-spawn --host --directory=client/staydesk-web sh -c '…'`, Node is in `~/.nvm`), then `firefox --headless --no-remote --profile "$(mktemp -d)" --window-size=360,740 --screenshot /tmp/x.png http://localhost:4200/...` on the host and copy the PNG back with `flatpak-spawn --host cat`. Flatpak Chrome can't write to host `/tmp`.
+- Logged-in visual checks: start `flatpak run com.google.Chrome --headless=new --remote-debugging-port=9222 --user-data-dir=<dir>` on the host and drive it with a small Node script over CDP (Node 24 has a global `WebSocket`; `Page.captureScreenshot` returns base64, so no file-permission issue). Stopping the background task doesn't kill Chrome: find it with `ss -ltnp | grep 9222` and `kill <pid>`.
+- Every full page load calls `/auth/refresh`, which counts against the 10/min auth limit (T-042). Scripted checks with many reloads hit 429 within a minute; prefer in-app clicks over `Page.navigate`.
+- esbuild bundles a library file as one module: if anything in the first-load code imports from a file (e.g. `@angular/forms`), every part of it used anywhere lands in the initial chunk. Check `ng build --stats-json` (`dist/staydesk-web/browser-stats.json`) before raising the budget.
 - Never `pkill -f "<pattern>"` through `flatpak-spawn`: the pattern matches the spawn command itself and kills the agent shell. Use `pgrep -af` to find the PID, then `kill <pid>`.
 - Angular 22: `CanMatchFn` takes a third argument (`currentSnapshot`); test helpers must pass it. Material colour tweaks go through `mat.*-overrides` mixins; the toolbar passes its text colour to text buttons, so use `mat.toolbar-overrides`.
 - Angular reactive forms: a server error set with `setErrors` is cleared by the next validation run (value change or first render). Component tests must render before submitting.
@@ -62,4 +65,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Phase 2d: list the requirement IDs (§7 `/admin/properties`, `/admin/rooms`, PROP-1/2/3/5) and the files to touch, per `AGENTS.md`. The admin area guard is `roleGuard('Staff')`; these pages need an extra `roleGuard('Admin')`.
+2. Phase 3a: list the requirement IDs (PRICE-1…) and the files to touch, per `AGENTS.md`. Pure Domain/Application code with unit tests; the demo bookings seed (T-022) waits for 4a.

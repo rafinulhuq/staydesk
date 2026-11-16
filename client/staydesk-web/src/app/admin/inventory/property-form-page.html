@@ -1,0 +1,104 @@
+<div class="page-header">
+  <h1>
+    {{ (id ? 'admin.properties.editTitle' : 'admin.properties.newTitle') | translate }}
+  </h1>
+</div>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'admin.properties.notFound' | translate }}
+      <a mat-button routerLink="/admin/properties">{{ 'admin.common.backToList' | translate }}</a>
+    </p>
+  }
+  @default {
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field class="full-width">
+        <mat-label>{{ 'admin.properties.fields.name' | translate }}</mat-label>
+        <input matInput formControlName="name" />
+        @if (form.controls.name.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        } @else if (form.controls.name.hasError('server')) {
+          <mat-error>{{ form.controls.name.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'admin.properties.fields.city' | translate }}</mat-label>
+        <input matInput formControlName="city" />
+        @if (form.controls.city.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        } @else if (form.controls.city.hasError('server')) {
+          <mat-error>{{ form.controls.city.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'admin.properties.fields.address' | translate }}</mat-label>
+        <input matInput formControlName="address" />
+        @if (form.controls.address.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        } @else if (form.controls.address.hasError('server')) {
+          <mat-error>{{ form.controls.address.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>{{ 'admin.properties.fields.description' | translate }}</mat-label>
+        <textarea matInput formControlName="description" rows="4"></textarea>
+        @if (form.controls.description.hasError('server')) {
+          <mat-error>{{ form.controls.description.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>{{ 'admin.properties.fields.imageUrl' | translate }}</mat-label>
+        <input matInput type="url" formControlName="imageUrl" />
+        @if (form.controls.imageUrl.hasError('server')) {
+          <mat-error>{{ form.controls.imageUrl.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'admin.properties.fields.checkInTime' | translate }}</mat-label>
+        <input matInput type="time" formControlName="checkInTime" />
+        @if (form.controls.checkInTime.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'admin.properties.fields.checkOutTime' | translate }}</mat-label>
+        <input matInput type="time" formControlName="checkOutTime" />
+        @if (form.controls.checkOutTime.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ 'admin.properties.fields.timeZone' | translate }}</mat-label>
+        <input matInput formControlName="timeZone" />
+        <mat-hint>{{ 'admin.properties.timeZoneHint' | translate }}</mat-hint>
+        @if (form.controls.timeZone.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        } @else if (form.controls.timeZone.hasError('server')) {
+          <mat-error>{{ form.controls.timeZone.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      @if (unexpectedError()) {
+        <p class="form-error" role="alert">{{ 'errors.unexpected' | translate }}</p>
+      }
+
+      <div class="form-actions">
+        <button mat-flat-button type="submit" [disabled]="submitting()">
+          {{ 'admin.common.save' | translate }}
+        </button>
+        <a mat-button routerLink="/admin/properties">{{ 'common.cancel' | translate }}</a>
+      </div>
+    </form>
+  }
+}

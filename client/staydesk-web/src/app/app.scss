@@ -17,21 +17,38 @@ mat-toolbar {
       filled-label-text-color: var(--mat-sys-on-tertiary-container),
     )
   );
-  @include mat.button-toggle-overrides(
-    (
-      text-color: var(--mat-sys-on-primary),
-      background-color: transparent,
-      selected-state-background-color: var(--mat-sys-on-primary),
-      selected-state-text-color: var(--mat-sys-primary),
-      divider-color: var(--mat-sys-on-primary),
-    )
-  );
 }
 
 .brand {
   color: inherit;
   text-decoration: none;
   font: var(--mat-sys-title-large);
+}
+
+.language {
+  display: flex;
+  border: 1px solid var(--mat-sys-on-primary);
+  border-radius: var(--mat-sys-corner-full);
+  overflow: hidden;
+
+  button {
+    padding: calc(var(--sd-space) * 0.75) calc(var(--sd-space) * 1.5);
+    border: 0;
+    background: transparent;
+    color: var(--mat-sys-on-primary);
+    font: var(--mat-sys-label-large);
+    cursor: pointer;
+
+    &[aria-pressed='true'] {
+      background: var(--mat-sys-on-primary);
+      color: var(--mat-sys-primary);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mat-sys-tertiary-container);
+      outline-offset: -2px;
+    }
+  }
 }
 
 .spacer {

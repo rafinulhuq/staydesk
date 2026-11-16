@@ -1,0 +1,67 @@
+// Shared by the inventory list and form pages.
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--sd-space) * 2);
+  margin-block: calc(var(--sd-space) * 3) calc(var(--sd-space) * 2);
+
+  h1 {
+    margin: 0;
+    margin-inline-end: auto;
+    font: var(--mat-sys-headline-small);
+  }
+}
+
+.property-select {
+  min-width: 320px;
+}
+
+.state {
+  padding-block: calc(var(--sd-space) * 2);
+}
+
+.state-error {
+  color: var(--mat-sys-error);
+}
+
+// Tablet widths: the table scrolls on its own instead of widening the page.
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.inactive {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.actions {
+  text-align: end;
+  white-space: nowrap;
+}
+
+form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sd-space) calc(var(--sd-space) * 2);
+  max-width: 880px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--sd-space);
+}
+
+.form-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--mat-sys-error);
+}

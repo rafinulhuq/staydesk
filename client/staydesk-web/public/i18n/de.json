@@ -1,7 +1,9 @@
 {
   "common": {
     "close": "Schließen",
-    "loading": "Wird geladen"
+    "loading": "Wird geladen",
+    "cancel": "Abbrechen",
+    "retry": "Erneut versuchen"
   },
   "nav": {
     "admin": "Backoffice",
@@ -22,6 +24,77 @@
   "admin": {
     "dashboard": {
       "title": "Übersicht"
+    },
+    "nav": {
+      "dashboard": "Übersicht",
+      "properties": "Unterkünfte",
+      "rooms": "Zimmer"
+    },
+    "common": {
+      "showInactive": "Inaktive anzeigen",
+      "loadFailed": "Die Liste konnte nicht geladen werden.",
+      "status": "Status",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "actions": "Aktionen",
+      "edit": "Bearbeiten",
+      "deactivate": "Deaktivieren",
+      "reactivate": "Reaktivieren",
+      "save": "Speichern",
+      "backToList": "Zurück zur Liste"
+    },
+    "properties": {
+      "title": "Unterkünfte",
+      "new": "Neue Unterkunft",
+      "empty": "Keine Unterkünfte vorhanden.",
+      "newTitle": "Neue Unterkunft",
+      "editTitle": "Unterkunft bearbeiten",
+      "notFound": "Diese Unterkunft gibt es nicht mehr.",
+      "timeZoneHint": "IANA-Zeitzone, z. B. Europe/Berlin",
+      "fields": {
+        "name": "Name",
+        "city": "Stadt",
+        "address": "Adresse",
+        "description": "Beschreibung",
+        "imageUrl": "Bild-URL",
+        "checkInTime": "Check-in ab",
+        "checkOutTime": "Check-out bis",
+        "timeZone": "Zeitzone"
+      },
+      "deactivate": {
+        "title": "{{name}} deaktivieren?",
+        "message": "Die Unterkunft und ihre Zimmer verschwinden aus der Suche. Bestehende Buchungen bleiben gültig, und Sie können sie später reaktivieren."
+      }
+    },
+    "rooms": {
+      "title": "Zimmer",
+      "property": "Unterkunft",
+      "new": "Neues Zimmer",
+      "empty": "Keine Zimmer vorhanden.",
+      "newTitle": "Neues Zimmer",
+      "editTitle": "Zimmer {{roomNumber}} bearbeiten",
+      "notFound": "Dieses Zimmer gibt es nicht mehr.",
+      "maxGuestsRange": "Zwischen 1 und 10",
+      "basePricePositive": "Muss größer als 0 sein",
+      "imageUrlsHint": "Eine URL pro Zeile, höchstens 10",
+      "conflict": "Jemand anderes hat dieses Zimmer gespeichert, während Sie es bearbeitet haben. Laden Sie neu, um dessen Stand zu sehen; Ihre Änderungen hier gehen verloren.",
+      "reload": "Neu laden",
+      "fields": {
+        "roomNumber": "Zimmernummer",
+        "type": "Typ",
+        "maxGuests": "Max. Gäste",
+        "basePrice": "Grundpreis pro Nacht",
+        "amenities": "Ausstattung",
+        "imageUrls": "Bild-URLs"
+      },
+      "deactivate": {
+        "title": "Zimmer {{roomNumber}} deaktivieren?",
+        "message": "Das Zimmer verschwindet aus der Suche. Bestehende Buchungen bleiben gültig, und Sie können es später reaktivieren."
+      },
+      "activeBookings": {
+        "title": "Zimmer deaktiviert, Buchungen bestehen noch",
+        "message": "Diese Buchungen bleiben gültig. Kontaktieren Sie die Gäste, falls sie umziehen müssen."
+      }
     }
   },
   "auth": {
@@ -58,5 +131,12 @@
     "rateLimited": "Zu viele Versuche. Bitte eine Minute warten.",
     "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte gleich erneut versuchen.",
     "unexpected": "Das hat nicht geklappt. Bitte erneut versuchen."
+  },
+  "roomTypes": {
+    "Single": "Einzelzimmer",
+    "Double": "Doppelzimmer",
+    "Twin": "Zweibettzimmer",
+    "Suite": "Suite",
+    "Apartment": "Apartment"
   }
 }

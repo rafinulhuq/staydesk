@@ -1,7 +1,9 @@
 {
   "common": {
     "close": "Close",
-    "loading": "Loading"
+    "loading": "Loading",
+    "cancel": "Cancel",
+    "retry": "Try again"
   },
   "nav": {
     "admin": "Back office",
@@ -22,6 +24,77 @@
   "admin": {
     "dashboard": {
       "title": "Dashboard"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "properties": "Properties",
+      "rooms": "Rooms"
+    },
+    "common": {
+      "showInactive": "Show inactive",
+      "loadFailed": "Couldn't load the list.",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "actions": "Actions",
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "save": "Save",
+      "backToList": "Back to the list"
+    },
+    "properties": {
+      "title": "Properties",
+      "new": "New property",
+      "empty": "No properties to show.",
+      "newTitle": "New property",
+      "editTitle": "Edit property",
+      "notFound": "This property no longer exists.",
+      "timeZoneHint": "IANA time zone, e.g. Europe/Berlin",
+      "fields": {
+        "name": "Name",
+        "city": "City",
+        "address": "Address",
+        "description": "Description",
+        "imageUrl": "Image URL",
+        "checkInTime": "Check-in from",
+        "checkOutTime": "Check-out until",
+        "timeZone": "Time zone"
+      },
+      "deactivate": {
+        "title": "Deactivate {{name}}?",
+        "message": "The property and its rooms disappear from search. Existing bookings stay valid, and you can reactivate it later."
+      }
+    },
+    "rooms": {
+      "title": "Rooms",
+      "property": "Property",
+      "new": "New room",
+      "empty": "No rooms to show.",
+      "newTitle": "New room",
+      "editTitle": "Edit room {{roomNumber}}",
+      "notFound": "This room no longer exists.",
+      "maxGuestsRange": "Between 1 and 10",
+      "basePricePositive": "Must be more than 0",
+      "imageUrlsHint": "One URL per line, up to 10",
+      "conflict": "Someone else saved this room while you were editing. Reload to see their version; your changes here will be lost.",
+      "reload": "Reload",
+      "fields": {
+        "roomNumber": "Room number",
+        "type": "Type",
+        "maxGuests": "Max guests",
+        "basePrice": "Base price per night",
+        "amenities": "Amenities",
+        "imageUrls": "Image URLs"
+      },
+      "deactivate": {
+        "title": "Deactivate room {{roomNumber}}?",
+        "message": "The room disappears from search. Existing bookings stay valid, and you can reactivate it later."
+      },
+      "activeBookings": {
+        "title": "Room deactivated, bookings still use it",
+        "message": "These bookings stay valid. Contact the guests if they need to move."
+      }
     }
   },
   "auth": {
@@ -58,5 +131,12 @@
     "rateLimited": "Too many attempts. Wait a minute and try again.",
     "server": "The server ran into a problem. Try again in a moment.",
     "unexpected": "That didn't work. Try again."
+  },
+  "roomTypes": {
+    "Single": "Single",
+    "Double": "Double",
+    "Twin": "Twin",
+    "Suite": "Suite",
+    "Apartment": "Apartment"
   }
 }

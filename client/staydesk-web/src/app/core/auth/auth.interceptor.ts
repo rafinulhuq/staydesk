@@ -24,10 +24,13 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         return throwError(() => error);
       }
       // Retry exactly once with the new token; a second 401 goes to the caller.
-      // If the session can't be refreshed, send the user to log in and come back.
+      // If the refresh token is dead (401), send the user to log in and come back. A 429
+      // or network failure keeps the session; the error interceptor already said why.
       return auth.refreshAccessToken().pipe(
-        catchError(() => {
-          void router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+        catchError((refreshError: unknown) => {
+          if (refreshError instanceof HttpErrorResponse && refreshError.status === 401) {
+            void router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+          }
           return throwError(() => error);
         }),
         switchMap((token) => next(withToken(request, token))),

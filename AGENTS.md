@@ -110,7 +110,7 @@ This repo must read as work by one developer who understands every line. These r
 
 ## Commands
 
-Verified in 2c. The web compose service arrives later. CI (`.github/workflows/ci.yml`) runs the same build, test, lint and format commands.
+Verified in 2d. The web compose service arrives later. CI (`.github/workflows/ci.yml`) runs the same build, test, lint and format commands.
 
 ```bash
 docker compose up -d --build --wait   # db + mail (UI :8025) + api (:8080), migrates and seeds

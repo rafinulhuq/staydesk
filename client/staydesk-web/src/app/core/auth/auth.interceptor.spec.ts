@@ -106,6 +106,21 @@ describe('authInterceptor', () => {
     expect(navigate).toHaveBeenCalledWith(['/login'], expect.anything());
   });
 
+  it('keeps the session and stays on the page when the refresh is rate limited', async () => {
+    await logIn();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    http.get('/api/v1/a').subscribe({ error: () => undefined });
+
+    backend.expectOne('/api/v1/a').flush(null, { status: 401, statusText: 'Unauthorized' });
+    backend
+      .expectOne('/api/v1/auth/refresh')
+      .flush(null, { status: 429, statusText: 'Too Many Requests' });
+
+    expect(TestBed.inject(AuthService).isLoggedIn()).toBe(true);
+    expect(localStorage.getItem('staydesk.refreshToken')).not.toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('passes a second 401 after the retry to the caller without refreshing again', async () => {
     await logIn();
     let status = 0;

@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-17 03:30 +06
+**Last updated:** 2026-11-17 04:00 +06
 
 **Status values:**
 - **OPEN:** needs doing.
@@ -33,14 +33,15 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 | T-031 | 2026-11-17 | P3 | OPEN | api | A malformed JSON body gets MVC's automatic 400 without the `code` extension (validation errors and known failures have it). | Customise `InvalidModelStateResponseFactory` if the Angular client needs it |
 | T-032 | 2026-11-17 | P3 | DECIDE | tests | SRS §3 and AGENTS.md name Shouldly, but every test so far uses xUnit `Assert`. Mixing both would be two ways of doing one thing. | Owner picks: add Shouldly and convert, or drop it from the SRS |
 | T-033 | 2026-11-17 | P3 | OPEN | security | Access tokens are stateless: after logout or deactivation an already issued access token still works until it expires (max 15 min). Accepted tradeoff of short-lived JWTs. | Mention in README security notes (7e) |
-| T-034 | 2026-11-17 | P3 | OPEN | api | Rooms are ordered by `RoomNumber` as text, so "10" sorts before "2". Seed numbers happen to sort fine today. | Fix in 2d if the admin room list shows it (natural sort or zero-padded numbers) |
 | T-035 | 2026-11-17 | P3 | OPEN | ops | The `api` compose service has no healthcheck, so `docker compose up --wait` returns before the API listens. The aspnet image has no curl. | Add a healthcheck (e.g. a tiny `--health` mode or wget in the image) when the `web` service is added |
 | T-036 | 2026-11-17 | P3 | OPEN | api | Two admins adding the same room number at the same instant: the pre-check passes for both, the unique index rejects one, and it surfaces as a 500, not a 400. | Map unique violations (23505) in Infrastructure when 4b adds the 23P01 mapping |
 | T-037 | 2026-11-17 | P3 | OPEN | spec | PROP-5's warning covers rooms only. Deactivating a property with active bookings returns 204 without listing them. | Ask owner whether property deactivation should warn too; extend PROP-5 if yes |
 | T-038 | 2026-11-17 | P3 | OPEN | ops | API container logs `Cannot load library libgssapi_krb5.so.2` at startup: Npgsql probing for Kerberos, which isn't used. Harmless. | Silence later if it confuses anyone (install the lib or ignore) |
 | T-039 | 2026-11-17 | P1 | OPEN | frontend | The SPA calls the API with relative `/api/...` URLs. That works behind the dev proxy and the planned nginx `web` service, but not if SPA and API are deployed on different hosts (D3 assumes they might be). | Add an API base URL setting when the deploy target is chosen (T-010, 7d) |
-| T-040 | 2026-11-17 | P2 | OPEN | frontend | §7 locale formatting (EUR and dates in `de-DE`/`en-GB` following the language switch) isn't wired yet; nothing shows prices or dates so far. | Register both locales and switch `LOCALE_ID`-dependent pipes with the language in 3d |
 | T-041 | 2026-11-17 | P3 | OPEN | tests | The error-snackbar and loading interceptors have no tests (SRS §9 lists only the auth interceptor and role guard). | Add small specs if either grows logic |
+| T-042 | 2026-11-17 | P3 | OPEN | api | `/auth/refresh` shares the 10/min auth rate limit, and every full page load refreshes once. An admin reloading 11 times in a minute gets a 429 on the restore and starts logged out (the token is kept since 2d, so the next reload works). | Give refresh its own, higher limit (e.g. 30/min) when NFR-3 is revisited with T-029 |
+| T-043 | 2026-11-17 | P3 | OPEN | dev | The 2d live check created a property "Pension am Dom" (Würzburg) in the local dev database. The seeder skips inventory when any property exists, so it stays until the DB volume is recreated. | Deactivate it in /admin/properties, or recreate the local DB volume (owner's call) |
+| T-044 | 2026-11-17 | P3 | OPEN | i18n | Amenity names ("Breakfast", "City view") are seed data in English and show untranslated in the German UI. §5 has no translated name field. | Decide in 7a: translation keys per amenity icon, or German seed names |
 | T-027 | 2026-11-17 | P2 | OPEN | career | Owner asked for a full interview question bank once the project is complete. Talking points per sub-feature are collected in `notes/interview-prep.md` (git-ignored). | After 7e: write questions + model answers from that file and the final code |
 | T-010 | 2026-11-16 | P2 | OPEN | ops | The free hosting choice for the API isn't made. Render was checked; Fly.io and Azure were not. | Decide before Phase 7d |
 
@@ -48,6 +49,9 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 
 | ID | Closed | Item | Commit |
 |----|--------|------|--------|
+| — | 2026-11-17 | Phase 2d: admin properties and rooms pages (Admin-only child routes, back-office tab bar), list tables with show-inactive toggle, deactivate with confirm dialog, reactivate, PROP-5 warning dialog, create/edit forms with server field errors, room version conflict (409) with reload; locale-aware EUR and date pipes. Header language switch is plain buttons now (first load 601 → 526 kB). Fixed: a 429 or network error on refresh no longer drops the session. 28 Vitest; live check in Chrome over CDP at 1280 and 900 px | Phase 2d commit |
+| T-034 | 2026-11-17 | Admin rooms table sorts room numbers naturally (`Intl.Collator` numeric); the API still orders as text, the public pages (3d) must sort the same way | Phase 2d commit |
+| T-040 | 2026-11-17 | `eur` and `localDate` pipes format for `de-DE` / `en-GB` following the language switch; both locales registered in `LanguageService` | Phase 2d commit |
 | — | 2026-11-17 | Phase 2c: Angular Material theme (deep blue/amber, system fonts), ngx-translate en/de with persisted switcher, AuthService (access token in memory, refresh token in localStorage), auth interceptor with one shared refresh and one retry, error snackbar and loading interceptors, `roleGuard` on canMatch, login/register pages with server field errors, dev proxy; API CORS for the configured origin. 15 Vitest + 53 .NET tests; checked in a real browser at 1280 and 360 px | Phase 2c commit |
 | T-015 | 2026-11-17 | Page headings moved to `en.json`/`de.json` | Phase 2c commit |
 | T-030 | 2026-11-17 | CORS default policy from `Cors:AllowedOrigins` (Development: `http://localhost:4200`), preflight tests for allowed and foreign origins | Phase 2c commit |

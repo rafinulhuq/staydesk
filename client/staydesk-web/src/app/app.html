@@ -17,16 +17,19 @@
       <a mat-flat-button routerLink="/register">{{ 'nav.register' | translate }}</a>
     }
 
-    <mat-button-toggle-group
-      class="language"
-      [attr.aria-label]="'nav.language' | translate"
-      [value]="language.current()"
-      (change)="switchLanguage($event.value)"
-      hideSingleSelectionIndicator
-    >
-      <mat-button-toggle value="en">EN</mat-button-toggle>
-      <mat-button-toggle value="de">DE</mat-button-toggle>
-    </mat-button-toggle-group>
+    <!-- Plain buttons, not mat-button-toggle: that is a form control and would pull
+         all of @angular/forms into the first page load. -->
+    <div class="language" role="group" [attr.aria-label]="'nav.language' | translate">
+      @for (option of languages; track option) {
+        <button
+          type="button"
+          [attr.aria-pressed]="language.current() === option"
+          (click)="switchLanguage(option)"
+        >
+          {{ option.toUpperCase() }}
+        </button>
+      }
+    </div>
   </mat-toolbar>
 
   <!-- Reserved height, so the page doesn't jump when the bar appears. -->

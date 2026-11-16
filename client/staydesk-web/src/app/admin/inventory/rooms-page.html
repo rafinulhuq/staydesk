@@ -1,0 +1,108 @@
+<div class="page-header">
+  <h1>{{ 'admin.rooms.title' | translate }}</h1>
+  @if (properties().length > 0) {
+    <mat-form-field class="property-select" subscriptSizing="dynamic">
+      <mat-label>{{ 'admin.rooms.property' | translate }}</mat-label>
+      <mat-select [value]="propertyId()" (selectionChange)="selectProperty($event.value)">
+        @for (property of properties(); track property.id) {
+          <mat-option [value]="property.id">
+            {{ property.name }}, {{ property.city }}
+            @if (!property.isActive) {
+              ({{ 'admin.common.inactive' | translate }})
+            }
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+  <mat-slide-toggle [checked]="showInactive()" (change)="showInactive.set($event.checked)">
+    {{ 'admin.common.showInactive' | translate }}
+  </mat-slide-toggle>
+  @if (propertyId(); as id) {
+    <a mat-flat-button routerLink="new" [queryParams]="{ propertyId: id }">
+      {{ 'admin.rooms.new' | translate }}
+    </a>
+  }
+</div>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'admin.common.loadFailed' | translate }}
+      <button mat-button type="button" (click)="loadRooms()">
+        {{ 'common.retry' | translate }}
+      </button>
+    </p>
+  }
+  @default {
+    @if (visible().length === 0) {
+      <p class="state">{{ 'admin.rooms.empty' | translate }}</p>
+    } @else {
+      <div class="table-scroll">
+        <table mat-table [dataSource]="visible()">
+          <ng-container matColumnDef="roomNumber">
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'admin.rooms.fields.roomNumber' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let room">{{ room.roomNumber }}</td>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.rooms.fields.type' | translate }}</th>
+            <td mat-cell *matCellDef="let room">{{ 'roomTypes.' + room.type | translate }}</td>
+          </ng-container>
+          <ng-container matColumnDef="maxGuests">
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'admin.rooms.fields.maxGuests' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let room">{{ room.maxGuests }}</td>
+          </ng-container>
+          <ng-container matColumnDef="basePrice">
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'admin.rooms.fields.basePrice' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let room">{{ room.basePrice | eur }}</td>
+          </ng-container>
+          <ng-container matColumnDef="amenities">
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'admin.rooms.fields.amenities' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let room">{{ amenityNames(room) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.common.status' | translate }}</th>
+            <td mat-cell *matCellDef="let room">
+              {{ (room.isActive ? 'admin.common.active' : 'admin.common.inactive') | translate }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions">
+              {{ 'admin.common.actions' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let room" class="actions">
+              <a mat-button [routerLink]="room.id">{{ 'admin.common.edit' | translate }}</a>
+              @if (room.isActive) {
+                <button mat-button type="button" (click)="deactivate(room)">
+                  {{ 'admin.common.deactivate' | translate }}
+                </button>
+              } @else {
+                <button mat-button type="button" (click)="reactivate(room)">
+                  {{ 'admin.common.reactivate' | translate }}
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let room; columns: columns"
+            [class.inactive]="!room.isActive"
+          ></tr>
+        </table>
+      </div>
+    }
+  }
+}
