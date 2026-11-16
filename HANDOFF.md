@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-16 22:29 +06
+**Last updated:** 2026-11-17 01:10 +06
 
 ## Where things stand
 
-- **Phase:** 1c done (seed data without bookings, Serilog + correlation IDs, Swagger UI, `/health`, migrate/seed on startup, API in Compose). **Next: 1d**: GitHub Actions CI building both apps and running all tests.
+- **Phase:** 1d done (CI workflow; Phase 1 foundation complete once the first GitHub run is green, T-024). **Next: 2a**: auth (register, login, JWT, rotating refresh tokens, roles). Read SRS §10 and the AUTH-* requirements first.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
 - **Open owner decisions:** T-003, T-004, T-005.
@@ -42,6 +42,8 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Local secrets on this machine (user-secrets for `src/StayDesk.Api`): `ConnectionStrings:Default` and `Seed:{Admin,Staff,Guest}Password`. A fresh clone needs them set (see `AGENTS.md` Commands), or use `docker compose up`.
 - Tests use xUnit v3 on Microsoft.Testing.Platform (D7). Pass `TestContext.Current.CancellationToken` to async calls (analyzer xUnit1051 is an error). `dotnet test --project <csproj>` to run one project.
 - Testcontainers finds Docker Desktop through the Docker context; no `DOCKER_HOST` needed. The local API connection string is in user-secrets on this machine.
+- `ng add` fails under npm 11 (EALLOWSCRIPTS). Workaround: `npm install -D <pkg>`, then `npx ng add <pkg>`, then `npm install` again to finish the schematic's installs.
+- coverlet.MTP: pass `--coverlet-include "[StayDesk.*]*"` whenever you pass an exclude, or it instruments xunit's assemblies too (and once ran only the unit tests).
 - npm 11 blocks package install scripts by default. Angular builds and tests pass without them (T-014).
 - `pdftoppm`/poppler isn't installed on the dev machine, so the Read tool can't render PDF pages. Text extraction used `pypdf` in a temporary venv.
 - Versions were verified on 2026-11-16: .NET 10, Angular 22, ngx-translate v18, ng2-charts v10+, Shouldly (BSD). FluentAssertions v8+ needs a commercial licence and is not used. Details are in the SRS §3 version note.
@@ -50,4 +52,5 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Phase 1d: `.github/workflows/ci.yml`. On push and PR: `dotnet build -warnaserror`, `dotnet test` (Testcontainers works on GitHub's Ubuntu runners), and in `client/staydesk-web` ESLint (`ng add angular-eslint`), Vitest and a production build. Pick an MTP coverage extension and upload the report (T-021).
+2. Confirm the first CI run is green (T-024).
+3. Phase 2a: auth. Start by listing the AUTH-* IDs and the files to touch, per `AGENTS.md`.

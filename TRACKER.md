@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-16 22:29 +06
+**Last updated:** 2026-11-17 01:10 +06
 
 **Status values:**
 - **OPEN:** needs doing.
@@ -26,15 +26,19 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 | T-017 | 2026-11-16 | P3 | OPEN | tests | `DependencyRuleTests` now has Domain types to check, but Application is still empty, so its test passes trivially. | Recheck when Application gets its first service (2a) |
 | T-019 | 2026-11-16 | P3 | OPEN | backend | Foreign key names on the renamed Identity tables still say `asp_net_users` (e.g. `fk_bookings_asp_net_users_guest_id`). Cosmetic only. | Leave; rename only if it confuses anyone |
 | T-020 | 2026-11-16 | P2 | OPEN | backend | `Booking.price_breakdown` is a nullable jsonb column: EF can't mark an owned JSON collection as required. The constructor always sets it. | Seeder and tests must never create a booking without nights |
-| T-021 | 2026-11-16 | P2 | OPEN | ci | Coverage: coverlet's VSTest collector was removed with the switch to Microsoft.Testing.Platform (D7). | Pick an MTP coverage extension when CI coverage upload is built (1d) |
 | T-022 | 2026-11-16 | P1 | OPEN | seed | The ~40 demo bookings (SRS §5) and the load seed (`Seed__LoadTest`) are not seeded yet. Real price snapshots and statuses need the pricing engine (3a) and the booking status machine (4a); faking them in the seeder would duplicate that logic. | Add both to `DbSeeder` in 4a |
 | T-023 | 2026-11-16 | P3 | OPEN | ops | Docker images use floating minor tags `mcr.microsoft.com/dotnet/sdk:10.0` / `aspnet:10.0`, so patch updates arrive automatically. | Pin exact digests or patch tags before deploy (7d) if reproducibility matters |
+| T-024 | 2026-11-17 | P1 | OPEN | ci | First CI run on GitHub not yet confirmed green; Testcontainers on the hosted runner and the ReportGenerator step were only checked locally / against docs. | Check the Actions tab after the 1d push; fix and log here |
+| T-025 | 2026-11-17 | P3 | OPEN | ci | Actions are pinned to major tags (`actions/checkout@v7` etc.) and ReportGenerator to `5.6.0`, not to commit SHAs. | Pin to SHAs or add Dependabot for actions before deploy (7d) if supply-chain hardening matters |
+| T-026 | 2026-11-17 | P2 | OPEN | ci | SRS §9 sets an 80% coverage target for Application, but CI only reports coverage; it doesn't fail below the target. Application has no code yet. | Add a threshold once Application has services (2a/3a) |
 | T-010 | 2026-11-16 | P2 | OPEN | ops | The free hosting choice for the API isn't made. Render was checked; Fly.io and Azure were not. | Decide before Phase 7d |
 
 ## Done log
 
 | ID | Closed | Item | Commit |
 |----|--------|------|--------|
+| — | 2026-11-17 | Phase 1d: GitHub Actions CI (api job: restore, build `-warnaserror`, tests with coverage, ReportGenerator summary + artifact; web job: lint, Prettier check, Vitest, production build). angular-eslint 22.7.0 added; 4 generated files reformatted with Prettier | Phase 1d commit |
+| T-021 | 2026-11-17 | Coverage via coverlet.MTP 10.1.1 (MIT), the MTP extension from the coverlet project | Phase 1d commit |
 | — | 2026-11-16 | Phase 1c: idempotent DbSeeder (roles, 3 demo users, 3 properties, 21 rooms, 10 amenities, 8 price rules), Identity core, Serilog + correlation IDs, Swagger UI, `/health` with DB check, migrate/seed on startup, API Dockerfile + compose service, 7 startup integration tests | Phase 1c commit |
 | T-016 | 2026-11-16 | Owner chose xUnit v3: xunit.v3 4.0.3 on Microsoft.Testing.Platform (D7) | xUnit v3 commit |
 | T-007 | 2026-11-16 | Confirmed by the integration test: an overlap surfaces as `DbUpdateException` → `PostgresException` with SqlState `23P01` and ConstraintName `ex_bookings_no_overlap` | Phase 1b commit |

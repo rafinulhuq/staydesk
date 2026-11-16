@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - run: dotnet restore
+
+      - run: dotnet build --no-restore -warnaserror
+
+      # Integration tests start PostgreSQL through Testcontainers; the runner has Docker.
+      # Coverage covers only StayDesk assemblies (without the include, xunit's own
+      # assemblies get instrumented) and skips the generated migrations.
+      - run: >
+          dotnet test --no-build
+          --coverlet --coverlet-output-format cobertura
+          --coverlet-include "[StayDesk.*]*"
+          --coverlet-exclude "[StayDesk.Infrastructure]StayDesk.Infrastructure.Persistence.Migrations.*"
+          --results-directory TestResults
+
+      - uses: danielpalme/ReportGenerator-GitHub-Action@5.6.0
+        if: always()
+        with:
+          reports: TestResults/*.cobertura.*.xml
+          targetdir: coverage
+          reporttypes: Html;MarkdownSummaryGithub
+
+      - if: always()
+        run: cat coverage/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage
+          path: coverage
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/staydesk-web
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/staydesk-web/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test -- --watch=false
+      - run: npm run build

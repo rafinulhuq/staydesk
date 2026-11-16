@@ -36,7 +36,7 @@ Design decisions and their tradeoffs: [`docs/decisions.md`](docs/decisions.md).
 
 Build order from SRS §10:
 
-- [ ] 1. Foundation: solution, Docker Compose, data model, seed data, CI (all done except CI)
+- [ ] 1. Foundation: solution, Docker Compose, data model, seed data, CI (CI added, first run pending)
 - [ ] 2. Auth and inventory
 - [ ] 3. Search and pricing
 - [ ] 4. Booking core

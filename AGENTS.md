@@ -110,7 +110,7 @@ This repo must read as work by one developer who understands every line. These r
 
 ## Commands
 
-Verified in 1c. The web compose service arrives later; lint arrives in 1d.
+Verified in 1d. The web compose service arrives later. CI (`.github/workflows/ci.yml`) runs the same build, test, lint and format commands.
 
 ```bash
 docker compose up -d --build --wait   # db + mail (UI :8025) + api (:8080), migrates and seeds
@@ -118,6 +118,7 @@ dotnet tool restore                   # dotnet-ef from dotnet-tools.json
 dotnet build -warnaserror             # backend, from repo root
 dotnet test                           # all tests (Microsoft.Testing.Platform; Testcontainers needs Docker)
 dotnet test --project tests/StayDesk.IntegrationTests
+dotnet test --coverlet --coverlet-output-format cobertura --coverlet-include "[StayDesk.*]*" --results-directory TestResults   # coverage (coverlet.MTP)
 
 # Running the API outside Docker needs these once per machine (user-secrets):
 dotnet user-secrets set ConnectionStrings:Default "Host=localhost;Port=5432;Database=staydesk;Username=staydesk;Password=staydesk_dev" --project src/StayDesk.Api
@@ -131,6 +132,8 @@ dotnet ef database update --project src/StayDesk.Infrastructure --startup-projec
 
 cd client/staydesk-web
 npm test -- --watch=false      # Vitest
+npm run lint                   # angular-eslint
+npm run format:check           # Prettier
 npm run build
 npm start                      # http://localhost:4200
 ```
