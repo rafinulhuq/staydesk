@@ -2,7 +2,7 @@
 
 Hotel booking platform with a public booking site and a staff back-office. ASP.NET Core 10 + Angular 22 + PostgreSQL.
 
-**Status:** early build. Phase 1 (foundation) is in progress; there are no features to use yet.
+**Status:** early build. Phase 1 (foundation) is done; there are no features to use yet. Phase 2 (auth and inventory) is next.
 
 ## What it will do
 
@@ -36,7 +36,7 @@ Design decisions and their tradeoffs: [`docs/decisions.md`](docs/decisions.md).
 
 Build order from SRS §10:
 
-- [ ] 1. Foundation: solution, Docker Compose, data model, seed data, CI (CI added, first run pending)
+- [x] 1. Foundation: solution, Docker Compose, data model, seed data (bookings come in phase 4), CI
 - [ ] 2. Auth and inventory
 - [ ] 3. Search and pricing
 - [ ] 4. Booking core

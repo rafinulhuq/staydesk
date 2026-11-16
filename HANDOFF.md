@@ -6,7 +6,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Where things stand
 
-- **Phase:** 1d done (CI workflow; Phase 1 foundation complete once the first GitHub run is green, T-024). **Next: 2a**: auth (register, login, JWT, rotating refresh tokens, roles). Read SRS §10 and the AUTH-* requirements first.
+- **Phase:** 1d done; Phase 1 complete. CI is green on GitHub (build, 12 tests, coverage, lint, Prettier, Vitest, production build). **Next: 2a**: auth (register, login, JWT, rotating refresh tokens, roles). Read SRS §10 and the AUTH-* requirements first.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
 - **Open owner decisions:** T-003, T-004, T-005.
@@ -42,6 +42,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Local secrets on this machine (user-secrets for `src/StayDesk.Api`): `ConnectionStrings:Default` and `Seed:{Admin,Staff,Guest}Password`. A fresh clone needs them set (see `AGENTS.md` Commands), or use `docker compose up`.
 - Tests use xUnit v3 on Microsoft.Testing.Platform (D7). Pass `TestContext.Current.CancellationToken` to async calls (analyzer xUnit1051 is an error). `dotnet test --project <csproj>` to run one project.
 - Testcontainers finds Docker Desktop through the Docker context; no `DOCKER_HOST` needed. The local API connection string is in user-secrets on this machine.
+- GitHub CLI `gh` works in the sandbox and is logged in; `gh run list -L1` / `gh run view <id>` to check CI after a push.
 - `ng add` fails under npm 11 (EALLOWSCRIPTS). Workaround: `npm install -D <pkg>`, then `npx ng add <pkg>`, then `npm install` again to finish the schematic's installs.
 - coverlet.MTP: pass `--coverlet-include "[StayDesk.*]*"` whenever you pass an exclude, or it instruments xunit's assemblies too (and once ran only the unit tests).
 - npm 11 blocks package install scripts by default. Angular builds and tests pass without them (T-014).
@@ -52,5 +53,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Confirm the first CI run is green (T-024).
-3. Phase 2a: auth. Start by listing the AUTH-* IDs and the files to touch, per `AGENTS.md`.
+2. Phase 2a: auth. Start by listing the AUTH-* IDs and the files to touch, per `AGENTS.md`.
