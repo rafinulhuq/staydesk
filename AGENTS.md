@@ -105,18 +105,29 @@ This repo must read as work by one developer who understands every line. These r
   - 2–3 interview talking points.
   - A Conventional Commit message.
 - If something is ambiguous and touches the data model, the API contract or concurrency: **stop and ask.** Otherwise pick the simplest option that satisfies SRS §11, and state the assumption in one line.
-- Don't modify generated migrations by hand, or anything in `bin/`, `obj/`, `dist/` or `node_modules/`.
+- Never edit a migration that has been applied or committed. A new migration may get hand-added `migrationBuilder.Sql(...)`, but only for things EF Core can't model (e.g. the BOOK-2 exclusion constraint). It needs a matching `Down`, a comment saying why, and must be added before the migration is first applied (owner-approved 2026-11-16).
+- Never touch `bin/`, `obj/`, `dist/` or `node_modules/`.
 
 ## Commands
 
-Verified in 1a. Docker Compose arrives in 1b, lint in 1d.
+Verified in 1b. The api and web compose services arrive in 1c, lint in 1d.
 
 ```bash
+docker compose up -d --wait    # db (PostgreSQL 16) + mail (Mailpit UI on http://localhost:8025)
+dotnet tool restore            # dotnet-ef from dotnet-tools.json
 dotnet build -warnaserror      # backend, from repo root
-dotnet test                    # unit + integration
+dotnet test                    # unit + integration (Testcontainers needs Docker)
+
+# API needs ConnectionStrings:Default (once per machine):
+dotnet user-secrets set ConnectionStrings:Default "Host=localhost;Port=5432;Database=staydesk;Username=staydesk;Password=staydesk_dev" --project src/StayDesk.Api
+dotnet run --project src/StayDesk.Api   # http://localhost:5095, OpenAPI at /openapi/v1.json
+
+# Migrations (the startup project reads the connection string from user-secrets):
+dotnet ef migrations add <Name> --project src/StayDesk.Infrastructure --startup-project src/StayDesk.Api --output-dir Persistence/Migrations
+dotnet ef database update --project src/StayDesk.Infrastructure --startup-project src/StayDesk.Api
+
 cd client/staydesk-web
 npm test -- --watch=false      # Vitest
 npm run build
-npm start                      # dev server on http://localhost:4200
-dotnet run --project src/StayDesk.Api   # API on http://localhost:5095, OpenAPI at /openapi/v1.json
+npm start                      # http://localhost:4200
 ```

@@ -270,10 +270,10 @@ Booking is the centre of the model, linking a Room, a guest User, the staff memb
 
 | Entity | Fields | Relationships and constraints |
 |--------|--------|-------------------------------|
-| User (Identity) | Id, Email, FirstName, LastName, PhoneNumber, CreatedAt, IsActive, IsDemo, PseudonymisedAt | Roles via Identity; 1–many Booking (as guest) |
+| User (Identity) | Id, Email, FirstName, LastName, PhoneNumber, CreatedAt, IsActive, IsDemo, PseudonymisedAt | Roles via Identity; 1–many Booking (as guest); unique NormalizedEmail. Identity tables are renamed to snake_case (`users`, `roles`, `user_roles`, …) |
 | RefreshToken | Id, UserId, TokenHash, ExpiresAt, CreatedAt, RevokedAt, ReplacedByTokenHash | Many–1 User; only hashes stored; index TokenHash |
 | Property | Id, Name, City, Address, Description, ImageUrl, CheckInTime, CheckOutTime, TimeZone (IANA, default `Europe/Berlin`), IsActive, CreatedAt | 1–many Room, 1–many PriceRule; index City |
-| Room | Id, PropertyId, RoomNumber, Type (enum), MaxGuests, BasePrice `numeric(10,2)`, ImageUrls (`jsonb` string array), IsActive, Version (concurrency token mapped to PostgreSQL `xmin`) | Many–1 Property; unique (PropertyId, RoomNumber); check MaxGuests 1–10 |
+| Room | Id, PropertyId, RoomNumber, Type (enum), MaxGuests, BasePrice `numeric(10,2)`, ImageUrls (`text[]`), IsActive, Version (concurrency token mapped to PostgreSQL `xmin`) | Many–1 Property; unique (PropertyId, RoomNumber); check MaxGuests 1–10 |
 | Amenity | Id, Name, Icon | Many–many Room via RoomAmenity |
 | RoomAmenity | RoomId, AmenityId | PK (RoomId, AmenityId) |
 | Booking | Id, Reference, RoomId, GuestId, CreatedById, CheckIn (`date`), CheckOut (`date`), Guests, GuestFullName, GuestEmail, GuestPhone, SpecialRequests, Status (enum), TotalPrice, PriceBreakdown (`jsonb`), CancellationFee, RefundAmount, FeeWaived, InternalNotes, IdempotencyKey, CreatedAt, ExpiresAt (nullable), ConfirmedAt, CheckedInAt, CheckedOutAt, CancelledAt, Version (concurrency token, `xmin`) | Many–1 Room, many–1 User (guest), many–1 User (creator); unique Reference; unique (CreatedById, IdempotencyKey); check CheckOut > CheckIn; exclusion constraint per BOOK-2; index (RoomId, CheckIn, CheckOut, Status) |
@@ -290,7 +290,7 @@ Booking is the centre of the model, linking a Room, a guest User, the staff memb
 **Data rules.**
 - Money is `decimal` in C# and `numeric(10,2)` in SQL, never `double` or `float`.
 - Dates use `DateOnly` in C# and `date` in SQL. Timestamps use `DateTimeOffset` in UTC (`timestamptz`).
-- **Soft delete** applies only to Property, Room, PriceRule and User (`IsActive` + a global query filter). Booking, Payment, RefreshToken and AuditEntry are never deleted. Queries that load a booking's Room or Property use `IgnoreQueryFilters()`, so history survives deactivation.
+- **Soft delete** applies to Property, Room and PriceRule (`IsActive` + a global query filter). User also has `IsActive`, but **no** global filter: Identity looks users up by email, and a filter would hide deactivated users, letting their email be registered again. Queries that list users filter on `IsActive` explicitly. Booking, Payment, RefreshToken and AuditEntry are never deleted. Queries that load a booking's Room or Property use `IgnoreQueryFilters()`, so history survives deactivation.
 - Enums are stored as strings.
 - **Seed data** is created by an idempotent `DbSeeder`:
   - On startup when `Seed__DemoData=true` (true in Development and on the public demo).
@@ -656,3 +656,4 @@ Start now with 1a.
 | API | Added `/users/me`, `/users/{id}/status`, `/amenities`, `/pricing/preview`, `/bookings/{id}/history`, `/bookings/{id}/cancellation-quote`, `/no-show`, reactivate endpoints; error codes; 422/429 |
 | NFR | Rate limit scope + ForwardedHeaders, token redaction, load-seed performance, NFR-13 GDPR, OPS-1 nightly reset, OPS-2 migration bundle |
 | Build plan / prompt | Sub-features instead of whole phases; SRS lives in the repo; ask on high-impact ambiguity |
+| Rev 2.1 (phase 1b, 2026-11-16) | User: no global filter, unique NormalizedEmail, snake_case Identity tables; Room.ImageUrls stored as `text[]` (native Npgsql mapping) instead of `jsonb` |

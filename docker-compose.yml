@@ -1,0 +1,27 @@
+# Local development stack. The api and web services are added once they have
+# something to serve (phase 1c onward).
+services:
+  db:
+    image: postgres:16.16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-staydesk}
+      POSTGRES_USER: ${POSTGRES_USER:-staydesk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-staydesk_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  mail:
+    image: axllent/mailpit:v1.33.1
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # web UI
+
+volumes:
+  db-data:
