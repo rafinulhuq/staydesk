@@ -1,0 +1,46 @@
+<mat-card class="auth-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title
+      ><h1>{{ 'auth.login.title' | translate }}</h1></mat-card-title
+    >
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field>
+        <mat-label>{{ 'auth.fields.email' | translate }}</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email" />
+        @if (form.controls.email.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        } @else if (form.controls.email.hasError('email')) {
+          <mat-error>{{ 'validation.email' | translate }}</mat-error>
+        } @else if (form.controls.email.hasError('server')) {
+          <mat-error>{{ form.controls.email.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'auth.fields.password' | translate }}</mat-label>
+        <input
+          matInput
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      @if (errorKey(); as key) {
+        <p class="form-error" role="alert">{{ key | translate }}</p>
+      }
+
+      <button mat-flat-button type="submit" [disabled]="submitting()">
+        {{ 'auth.login.submit' | translate }}
+      </button>
+    </form>
+  </mat-card-content>
+  <mat-card-actions>
+    <a mat-button routerLink="/register">{{ 'auth.login.toRegister' | translate }}</a>
+  </mat-card-actions>
+</mat-card>

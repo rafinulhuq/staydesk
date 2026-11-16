@@ -1,1 +1,42 @@
-<router-outlet />
+<header>
+  <mat-toolbar>
+    <a class="brand" routerLink="/">StayDesk</a>
+    <span class="spacer"></span>
+
+    @if (auth.user(); as user) {
+      @if (auth.hasRole('Staff')) {
+        <a mat-button routerLink="/admin">{{ 'nav.admin' | translate }}</a>
+      }
+      @if (auth.hasRole('Guest')) {
+        <a mat-button routerLink="/account/bookings">{{ 'nav.myBookings' | translate }}</a>
+      }
+      <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+      <button mat-button type="button" (click)="logout()">{{ 'nav.logout' | translate }}</button>
+    } @else {
+      <a mat-button routerLink="/login">{{ 'nav.login' | translate }}</a>
+      <a mat-flat-button routerLink="/register">{{ 'nav.register' | translate }}</a>
+    }
+
+    <mat-button-toggle-group
+      class="language"
+      [attr.aria-label]="'nav.language' | translate"
+      [value]="language.current()"
+      (change)="switchLanguage($event.value)"
+      hideSingleSelectionIndicator
+    >
+      <mat-button-toggle value="en">EN</mat-button-toggle>
+      <mat-button-toggle value="de">DE</mat-button-toggle>
+    </mat-button-toggle-group>
+  </mat-toolbar>
+
+  <!-- Reserved height, so the page doesn't jump when the bar appears. -->
+  <div class="loading">
+    @if (loading.isLoading()) {
+      <mat-progress-bar mode="indeterminate" [attr.aria-label]="'common.loading' | translate" />
+    }
+  </div>
+</header>
+
+<main>
+  <router-outlet />
+</main>

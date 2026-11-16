@@ -8,7 +8,7 @@ using StayDesk.Infrastructure.Persistence.Seeding;
 
 namespace StayDesk.IntegrationTests;
 
-// Startup wiring: health check (NFR-7), correlation IDs (NFR-8), demo seed (AUTH-4, PROP-4).
+// Startup wiring: health check (NFR-7), correlation IDs (NFR-8), demo seed (AUTH-4, PROP-4), CORS (NFR-3).
 public class StartupTests(ApiFixture api) : IClassFixture<ApiFixture>
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -103,4 +103,19 @@ public class StartupTests(ApiFixture api) : IClassFixture<ApiFixture>
         await db.Amenities.CountAsync(Ct),
         await db.PriceRules.CountAsync(Ct),
         await db.Users.CountAsync(Ct));
+
+    [Theory]
+    [InlineData("http://localhost:4200", true)]
+    [InlineData("https://evil.example", false)]
+    public async Task Cors_allows_only_the_configured_frontend_origin(string origin, bool allowed)
+    {
+        using var preflight = new HttpRequestMessage(HttpMethod.Options, "/api/v1/auth/login");
+        preflight.Headers.Add("Origin", origin);
+        preflight.Headers.Add("Access-Control-Request-Method", "POST");
+        preflight.Headers.Add("Access-Control-Request-Headers", "content-type");
+
+        var response = await api.Factory.CreateClient().SendAsync(preflight, Ct);
+
+        Assert.Equal(allowed, response.Headers.TryGetValues("Access-Control-Allow-Origin", out var values) && values.Single() == origin);
+    }
 }

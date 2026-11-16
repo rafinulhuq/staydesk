@@ -1,0 +1,64 @@
+@use '@angular/material' as mat;
+
+mat-toolbar {
+  gap: var(--sd-space);
+
+  // The toolbar passes its text colour to text buttons; the one filled button
+  // (Register) takes the amber accent instead of vanishing into the blue.
+  @include mat.toolbar-overrides(
+    (
+      container-background-color: var(--mat-sys-primary),
+      container-text-color: var(--mat-sys-on-primary),
+    )
+  );
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-tertiary-container),
+      filled-label-text-color: var(--mat-sys-on-tertiary-container),
+    )
+  );
+  @include mat.button-toggle-overrides(
+    (
+      text-color: var(--mat-sys-on-primary),
+      background-color: transparent,
+      selected-state-background-color: var(--mat-sys-on-primary),
+      selected-state-text-color: var(--mat-sys-primary),
+      divider-color: var(--mat-sys-on-primary),
+    )
+  );
+}
+
+.brand {
+  color: inherit;
+  text-decoration: none;
+  font: var(--mat-sys-title-large);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.user-name {
+  font: var(--mat-sys-body-medium);
+}
+
+.loading {
+  height: 4px;
+}
+
+main {
+  padding: 0 calc(var(--sd-space) * 2);
+}
+
+// SRS §7: public pages must work at 360 px; the toolbar wraps instead of overflowing.
+@media (max-width: 600px) {
+  mat-toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding-block: var(--sd-space);
+  }
+
+  .user-name {
+    display: none;
+  }
+}

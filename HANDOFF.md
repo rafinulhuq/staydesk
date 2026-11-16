@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 02:45 +06
+**Last updated:** 2026-11-17 03:30 +06
 
 ## Where things stand
 
-- **Phase:** 2b done (property, room and amenity API). **Next: 2c**: Angular login/register, auth interceptor with single-flight refresh, guards; add CORS (T-030) in the same step.
+- **Phase:** 2c done (Angular auth: login/register, interceptors, guard, theme, en/de). **Next: 2d**: admin properties and rooms pages (Admin only; use the 2b API, show-inactive toggle, reactivate, version conflicts).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-003, T-004, T-005, T-028, T-032, T-037.
@@ -47,6 +47,10 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Integration tests raise the auth rate limit with `RateLimiting:AuthPermitLimit` (all test requests share one IP); the 429 test sets it back to 10 on a derived factory.
 - Application services use `IStayDeskDbContext` (D8). Admin queries must call `IgnoreQueryFilters()` to see inactive rows; public room queries also need the property filter (`db.Properties.Any(...)`), because Room has no navigation to Property.
 - `docker compose up --wait` does not wait for the API (no healthcheck, T-035); poll `/health` before smoke tests.
+- Visual checks: run the API (`docker compose up -d api`) and `npx ng serve` **on the host** (`flatpak-spawn --host --directory=client/staydesk-web sh -c '…'`, Node is in `~/.nvm`), then `firefox --headless --no-remote --profile "$(mktemp -d)" --window-size=360,740 --screenshot /tmp/x.png http://localhost:4200/...` on the host and copy the PNG back with `flatpak-spawn --host cat`. Flatpak Chrome can't write to host `/tmp`.
+- Never `pkill -f "<pattern>"` through `flatpak-spawn`: the pattern matches the spawn command itself and kills the agent shell. Use `pgrep -af` to find the PID, then `kill <pid>`.
+- Angular 22: `CanMatchFn` takes a third argument (`currentSnapshot`); test helpers must pass it. Material colour tweaks go through `mat.*-overrides` mixins; the toolbar passes its text colour to text buttons, so use `mat.toolbar-overrides`.
+- Angular reactive forms: a server error set with `setErrors` is cleared by the next validation run (value change or first render). Component tests must render before submitting.
 - GitHub CLI `gh` works in the sandbox and is logged in; `gh run list -L1` / `gh run view <id>` to check CI after a push.
 - `ng add` fails under npm 11 (EALLOWSCRIPTS). Workaround: `npm install -D <pkg>`, then `npx ng add <pkg>`, then `npm install` again to finish the schematic's installs.
 - coverlet.MTP: pass `--coverlet-include "[StayDesk.*]*"` whenever you pass an exclude, or it instruments xunit's assemblies too (and once ran only the unit tests).
@@ -58,4 +62,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Phase 2c: list the requirement IDs (§7 auth parts, AUTH-*, NFR-3 CORS) and the files to touch, per `AGENTS.md`.
+2. Phase 2d: list the requirement IDs (§7 `/admin/properties`, `/admin/rooms`, PROP-1/2/3/5) and the files to touch, per `AGENTS.md`. The admin area guard is `roleGuard('Staff')`; these pages need an extra `roleGuard('Admin')`.

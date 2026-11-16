@@ -2,7 +2,7 @@
 
 Hotel booking platform with a public booking site and a staff back-office. ASP.NET Core 10 + Angular 22 + PostgreSQL.
 
-**Status:** early build. Phase 1 (foundation) is done. Phase 2 (auth and inventory) is in progress: the auth and property/room APIs work, there is no UI yet.
+**Status:** early build. Phase 1 (foundation) is done. Phase 2 (auth and inventory) is in progress: the auth and property/room APIs work; the web app has login and registration so far.
 
 ## What it will do
 
@@ -55,6 +55,12 @@ docker compose up -d --build --wait
 This starts PostgreSQL, Mailpit (http://localhost:8025) and the API (http://localhost:8080). The API applies migrations and seeds demo data on startup. `GET /health` reports database status.
 
 Demo accounts (local only): `admin@example.com` / `Admin123`, `staff@example.com` / `Staff123`, `guest@example.com` / `Guest123`. Swagger UI is at http://localhost:8080/swagger: call `POST /api/v1/auth/login`, then paste the `accessToken` into Authorize.
+
+The web app needs Node 24:
+
+```bash
+cd client/staydesk-web && npm ci && npm start   # http://localhost:4200, proxies /api to :8080
+```
 
 Running tests needs the .NET 10 SDK and Docker:
 

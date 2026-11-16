@@ -1,1 +1,54 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use './theme-colors' as theme;
+
+// SRS §7: one Material theme, primary deep blue, accent amber, 8 px spacing.
+// System fonts on purpose: no request to Google Fonts, so no visitor IP goes to a
+// third party (relevant under GDPR for a German audience).
+html {
+  color-scheme: light;
+  --sd-space: 8px;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: theme.$primary-palette,
+        tertiary: theme.$tertiary-palette,
+      ),
+      typography: (
+        plain-family: (
+          system-ui,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif,
+        ),
+        brand-family: (
+          system-ui,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif,
+        ),
+      ),
+      density: 0,
+    )
+  );
+
+  // M3 maps primary to tone 40, a medium blue; tone 30 is the deep blue the SRS asks for
+  // and gives text on it more contrast.
+  @include mat.theme-overrides(
+    (
+      primary: map.get(theme.$primary-palette, 30),
+    )
+  );
+}
+
+body {
+  margin: 0;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+}

@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'sd-my-bookings-page',
-  template: '<h1>My bookings</h1>',
+  imports: [TranslatePipe],
+  template: "<h1>{{ 'account.bookings.title' | translate }}</h1>",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyBookingsPage {}

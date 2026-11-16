@@ -1,0 +1,62 @@
+{
+  "common": {
+    "close": "Schließen",
+    "loading": "Wird geladen"
+  },
+  "nav": {
+    "admin": "Backoffice",
+    "myBookings": "Meine Buchungen",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden",
+    "language": "Sprache"
+  },
+  "home": {
+    "title": "Zimmer in Berlin, München oder Hamburg finden"
+  },
+  "account": {
+    "bookings": {
+      "title": "Meine Buchungen"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Übersicht"
+    }
+  },
+  "auth": {
+    "fields": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "password": "Passwort"
+    },
+    "login": {
+      "title": "Anmelden",
+      "submit": "Anmelden",
+      "toRegister": "Noch kein Konto? Registrieren"
+    },
+    "register": {
+      "title": "Konto erstellen",
+      "submit": "Registrieren",
+      "toLogin": "Schon registriert? Anmelden",
+      "passwordHint": "Mindestens 8 Zeichen, davon eine Ziffer und ein Großbuchstabe"
+    },
+    "errors": {
+      "invalid_credentials": "E-Mail oder Passwort ist falsch.",
+      "account_locked": "Zu viele Fehlversuche. Bitte in 5 Minuten erneut versuchen.",
+      "account_inactive": "Dieses Konto ist deaktiviert. Bitte wenden Sie sich an das Hotel."
+    }
+  },
+  "validation": {
+    "required": "Pflichtfeld",
+    "email": "Bitte eine gültige E-Mail-Adresse eingeben"
+  },
+  "errors": {
+    "network": "Server nicht erreichbar. Bitte Verbindung prüfen.",
+    "forbidden": "Dafür fehlt Ihnen die Berechtigung.",
+    "rateLimited": "Zu viele Versuche. Bitte eine Minute warten.",
+    "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte gleich erneut versuchen.",
+    "unexpected": "Das hat nicht geklappt. Bitte erneut versuchen."
+  }
+}

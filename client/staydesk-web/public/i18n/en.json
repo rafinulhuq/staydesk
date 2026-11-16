@@ -1,0 +1,62 @@
+{
+  "common": {
+    "close": "Close",
+    "loading": "Loading"
+  },
+  "nav": {
+    "admin": "Back office",
+    "myBookings": "My bookings",
+    "login": "Log in",
+    "register": "Register",
+    "logout": "Log out",
+    "language": "Language"
+  },
+  "home": {
+    "title": "Find a room in Berlin, Munich or Hamburg"
+  },
+  "account": {
+    "bookings": {
+      "title": "My bookings"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Dashboard"
+    }
+  },
+  "auth": {
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "password": "Password"
+    },
+    "login": {
+      "title": "Log in",
+      "submit": "Log in",
+      "toRegister": "No account yet? Register"
+    },
+    "register": {
+      "title": "Create an account",
+      "submit": "Register",
+      "toLogin": "Already registered? Log in",
+      "passwordHint": "At least 8 characters, with one digit and one capital letter"
+    },
+    "errors": {
+      "invalid_credentials": "Email or password is wrong.",
+      "account_locked": "Too many failed attempts. Try again in 5 minutes.",
+      "account_inactive": "This account is deactivated. Contact the hotel."
+    }
+  },
+  "validation": {
+    "required": "Required",
+    "email": "Enter a valid email address"
+  },
+  "errors": {
+    "network": "Can't reach the server. Check your connection.",
+    "forbidden": "You don't have access to this.",
+    "rateLimited": "Too many attempts. Wait a minute and try again.",
+    "server": "The server ran into a problem. Try again in a moment.",
+    "unexpected": "That didn't work. Try again."
+  }
+}
