@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-17 04:00 +06
+**Last updated:** 2026-11-17 04:30 +06
 
 **Status values:**
 - **OPEN:** needs doing.
@@ -49,6 +49,7 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 
 | ID | Closed | Item | Commit |
 |----|--------|------|--------|
+| — | 2026-11-17 | Phase 3a: `PricingEngine` (Domain, pure, D9) with one strategy per rule type (Seasonal inclusive dates, Weekend Fri/Sat nights, LengthOfStay, LastMinute against today at the property); multiplicative stacking, one AwayFromZero rounding per night, 1.00 floor, total = sum of nights; property and room rules both apply. 15 unit tests (19 cases), mutation-checked; 70 backend tests total | Phase 3a commit |
 | — | 2026-11-17 | Phase 2d: admin properties and rooms pages (Admin-only child routes, back-office tab bar), list tables with show-inactive toggle, deactivate with confirm dialog, reactivate, PROP-5 warning dialog, create/edit forms with server field errors, room version conflict (409) with reload; locale-aware EUR and date pipes. Header language switch is plain buttons now (first load 601 → 526 kB). Fixed: a 429 or network error on refresh no longer drops the session. 28 Vitest; live check in Chrome over CDP at 1280 and 900 px | Phase 2d commit |
 | T-034 | 2026-11-17 | Admin rooms table sorts room numbers naturally (`Intl.Collator` numeric); the API still orders as text, the public pages (3d) must sort the same way | Phase 2d commit |
 | T-040 | 2026-11-17 | `eur` and `localDate` pipes format for `de-DE` / `en-GB` following the language switch; both locales registered in `LanguageService` | Phase 2d commit |

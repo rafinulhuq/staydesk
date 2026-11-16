@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 04:00 +06
+**Last updated:** 2026-11-17 04:30 +06
 
 ## Where things stand
 
-- **Phase:** 2d done, so Phase 2 (auth and inventory) is complete. **Next: 3a**: pricing engine with all four rule types and unit tests (PRICE-*; strategy per rule type, `today` as input, per-night rounding).
+- **Phase:** 3a done (pricing engine, D9). **Next: 3b**: `POST /pricing/quote` (public) and `POST /pricing/preview` (Admin, PRICE-8) on top of `PricingEngine.Quote`; today = `Property.TodayAt(TimeProvider.GetUtcNow())`.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-003, T-004, T-005, T-028, T-032, T-037.
@@ -65,4 +65,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-003/T-004/T-005 whenever.
-2. Phase 3a: list the requirement IDs (PRICE-1…) and the files to touch, per `AGENTS.md`. Pure Domain/Application code with unit tests; the demo bookings seed (T-022) waits for 4a.
+2. Phase 3b: list the requirement IDs (PRICE-4, PRICE-8, §6 `/pricing/*`) and the files to touch. Load rules through the soft-delete filter (the engine doesn't check `IsActive`). Quote for an inactive room or property should be 404.

@@ -116,3 +116,18 @@ One entry per decision that shaped the SRS. Add new entries at the bottom; don't
 - Auth stays in Infrastructure (`AuthService` behind `IAuthService`) because it needs ASP.NET Identity's `UserManager`.
 
 **Cost.** Application depends on EF Core's API (not on Npgsql or any provider). Provider-specific SQL (row locks, `23P01` handling in phase 4) has to live in Infrastructure behind a narrow interface.
+
+## D9: Pricing engine in Domain, returning the booking snapshot type
+
+**Date:** 2026-11-17 · **Status:** accepted
+
+**Context.** Phase 3a builds the pricing engine (PRICE-1/3/6). Quotes (3b), search totals (3c) and booking creation (4b) all need the same numbers, and the booking stores a per-night snapshot (PRICE-5).
+
+**Decision.** `PricingEngine` is a static, pure class in `StayDesk.Domain.Pricing`. It takes the room, the rules the caller loaded and a `Stay` (check-in, check-out, today at the property) and returns `NightPrice` lines, the same type `Booking.PriceBreakdown` stores. One internal strategy class per rule type decides only whether a rule matches a night; the engine does the multiplication, rounding and floor.
+
+**Why.**
+- No dependencies: no clock, no database, no DI. Unit tests call it directly.
+- Quote and booking snapshot can't disagree, because they are the same objects.
+- Keeping arithmetic out of the strategies means a new rule type can't get rounding wrong.
+
+**Cost.** Application's coverage target (SRS §9) doesn't count this code, since it lives in Domain. The CI coverage report includes all `StayDesk.*` assemblies, so it stays visible.
