@@ -13,7 +13,7 @@ using StayDesk.Infrastructure.Persistence;
 
 namespace StayDesk.IntegrationTests;
 
-// BOOK-1..3, BOOK-5, BOOK-6, BOOK-8, PRICE-7 and NFR-5. Each test books its own new room.
+// BOOK-1..3, BOOK-5, BOOK-6, BOOK-8, BOOK-9, PRICE-7 and NFR-5. Each test books its own new room.
 public class BookingTests(ApiFixture api) : IClassFixture<ApiFixture>
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -285,6 +285,105 @@ public class BookingTests(ApiFixture api) : IClassFixture<ApiFixture>
         var stored = await db.Bookings.SingleAsync(b => b.Id == expired.Id, Ct);
         Assert.Equal((BookingStatus.Cancelled, 0m, 0m), (stored.Status, stored.CancellationFee, stored.RefundAmount));
         Assert.Equal(BookingStatus.Pending, (await db.Bookings.SingleAsync(b => b.Id == live.Id, Ct)).Status);
+    }
+
+    [Fact]
+    public async Task Staff_walk_in_for_an_existing_guest_is_confirmed_and_paid_at_the_desk()
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+        var guestId = await UserIdAsync("guest@example.com");
+
+        var response = await PostAsync(await StaffAsync(), Request(room, checkIn, checkIn.AddDays(2)) with { GuestId = guestId }, Guid.NewGuid());
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var booking = (await response.Content.ReadFromJsonAsync<BookingDetail>(ApiFixture.Json, Ct))!;
+        Assert.Equal(BookingStatus.Confirmed, booking.Status);
+        Assert.Null(booking.ExpiresAt);
+        await using var db = api.Database.CreateContext();
+        var stored = await db.Bookings.SingleAsync(b => b.Id == booking.Id, Ct);
+        Assert.Equal((guestId, await UserIdAsync("staff@example.com")), (stored.GuestId, stored.CreatedById));
+        var payment = await db.Payments.SingleAsync(p => p.BookingId == booking.Id, Ct);
+        Assert.Equal((240.00m, PaymentProvider.Desk), (payment.Amount, payment.Provider));
+    }
+
+    [Fact]
+    public async Task Walk_in_with_new_guest_details_creates_a_guest_account_without_a_password()
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+        var email = NewEmail();
+        var request = Request(room, checkIn, checkIn.AddDays(1)) with { NewGuest = new("Sophie", "Wagner", email, "+49 40 7654321") };
+        var staff = await StaffAsync();
+        var key = Guid.NewGuid();
+
+        var response = await PostAsync(staff, request, key);
+        var retry = await PostAsync(staff, request, key);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
+        var booking = (await response.Content.ReadFromJsonAsync<BookingDetail>(ApiFixture.Json, Ct))!;
+        await using var db = api.Database.CreateContext();
+        var user = await db.Users.SingleAsync(u => u.Email == email, Ct);
+        Assert.Null(user.PasswordHash);
+        Assert.True(user.IsActive);
+        Assert.Equal(user.Id, (await db.Bookings.SingleAsync(b => b.Id == booking.Id, Ct)).GuestId);
+        var guestRole = await db.Roles.SingleAsync(r => r.Name == Roles.Guest, Ct);
+        Assert.True(await db.UserRoles.AnyAsync(r => r.UserId == user.Id && r.RoleId == guestRole.Id, Ct));
+    }
+
+    [Fact]
+    public async Task A_walk_in_that_hits_a_taken_room_leaves_no_new_account_behind()
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+        await PostAsync(await GuestAsync(), Request(room, checkIn, checkIn.AddDays(2)), Guid.NewGuid());
+        var email = NewEmail();
+
+        var response = await PostAsync(await StaffAsync(),
+            Request(room, checkIn, checkIn.AddDays(1)) with { NewGuest = new("Paul", "Zimmermann", email, null) }, Guid.NewGuid());
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        await using var db = api.Database.CreateContext();
+        Assert.False(await db.Users.AnyAsync(u => u.Email == email, Ct));
+    }
+
+    [Fact]
+    public async Task A_guest_cannot_book_for_someone_else()
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+
+        var response = await PostAsync(await GuestAsync(),
+            Request(room, checkIn, checkIn.AddDays(1)) with { GuestId = await UserIdAsync("staff@example.com") }, Guid.NewGuid());
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Staff_must_say_who_the_walk_in_is_for()
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+
+        var noGuest = await PostAsync(await StaffAsync(), Request(room, checkIn, checkIn.AddDays(1)), Guid.NewGuid());
+        var takenEmail = await PostAsync(await StaffAsync(),
+            Request(room, checkIn, checkIn.AddDays(1)) with { NewGuest = new("Lena", "Schmidt", "guest@example.com", null) }, Guid.NewGuid());
+
+        Assert.Equal(HttpStatusCode.BadRequest, noGuest.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, takenEmail.StatusCode);
+        using var body = JsonDocument.Parse(await takenEmail.Content.ReadAsStringAsync(Ct));
+        Assert.True(body.RootElement.GetProperty("errors").TryGetProperty("newGuest.email", out _));
+    }
+
+    private Task<HttpClient> StaffAsync() => api.CreateClientAsync("staff@example.com", "Staff123");
+
+    private static string NewEmail() => $"walkin.{Guid.NewGuid():N}"[..20] + "@example.com";
+
+    private async Task<Guid> UserIdAsync(string email)
+    {
+        await using var db = api.Database.CreateContext();
+        return (await db.Users.SingleAsync(u => u.Email == email, Ct)).Id;
     }
 
     // Two nights in a new room at 120.00, held for the demo guest.

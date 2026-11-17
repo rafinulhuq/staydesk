@@ -12,15 +12,15 @@ namespace StayDesk.Api.Controllers;
 public sealed class BookingsController(BookingService bookings) : ControllerBase
 {
     // 201 for a new booking, 200 when an Idempotency-Key retry returns the original (BOOK-8).
-    // Staff and Admin walk-ins (BOOK-9) are added in 4d.
-    [Authorize(Roles = Roles.Guest)]
+    // Staff (and Admin, who also holds Staff) create walk-ins (BOOK-9).
+    [Authorize(Roles = $"{Roles.Guest},{Roles.Staff}")]
     [HttpPost]
     public async Task<ActionResult<BookingDetail>> Create(
         CreateBookingRequest request,
         [FromHeader(Name = "Idempotency-Key")] Guid? idempotencyKey,
         CancellationToken ct)
     {
-        var (booking, created) = await bookings.CreateAsync(CurrentUserId, idempotencyKey, request, ct);
+        var (booking, created) = await bookings.CreateAsync(CurrentUserId, User.IsInRole(Roles.Staff), idempotencyKey, request, ct);
         return created ? CreatedAtAction(nameof(Get), new { id = booking.Id }, booking) : Ok(booking);
     }
 

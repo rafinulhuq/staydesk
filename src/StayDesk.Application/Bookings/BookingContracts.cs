@@ -5,6 +5,7 @@ namespace StayDesk.Application.Bookings;
 
 // BOOK-1. The guest details come pre-filled from the profile but can be changed per booking.
 // ExpectedTotal is the total the guest was shown; PRICE-7 compares it with the server's price.
+// GuestId or NewGuest: staff walk-ins only (BOOK-9), the guest the booking is for.
 public sealed record CreateBookingRequest(
     Guid RoomId,
     DateOnly CheckIn,
@@ -14,7 +15,12 @@ public sealed record CreateBookingRequest(
     string GuestEmail,
     string? GuestPhone,
     string? SpecialRequests,
-    decimal? ExpectedTotal) : IStayDates;
+    decimal? ExpectedTotal,
+    Guid? GuestId = null,
+    NewGuest? NewGuest = null) : IStayDates;
+
+// BOOK-9: creates a Guest account without a password (no login until one is set).
+public sealed record NewGuest(string FirstName, string LastName, string Email, string? Phone);
 
 public sealed record BookingDetail(
     Guid Id,

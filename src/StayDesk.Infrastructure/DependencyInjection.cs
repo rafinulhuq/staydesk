@@ -55,6 +55,7 @@ public static class DependencyInjection
 
         services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.Section));
         services.AddScoped<IBookingEmails, SmtpBookingEmails>();
+        services.AddScoped<IGuestAccounts, GuestAccounts>();
         services.AddHostedService<BookingExpiryJob>();
 
         services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.Section));

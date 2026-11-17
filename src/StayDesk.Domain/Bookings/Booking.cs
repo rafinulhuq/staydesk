@@ -94,6 +94,35 @@ public class Booking
         ExpiresAt = createdAt + PendingHold;
     }
 
+    // BOOK-9: a walk-in is created by staff and paid at the desk, so it skips Pending and has
+    // no hold to expire. CreatedById records the staff member.
+    public static Booking WalkIn(
+        string reference,
+        Guid roomId,
+        Guid guestId,
+        Guid createdById,
+        DateOnly checkIn,
+        DateOnly checkOut,
+        int guests,
+        string guestFullName,
+        string guestEmail,
+        string? guestPhone,
+        string? specialRequests,
+        List<NightPrice> priceBreakdown,
+        Guid? idempotencyKey,
+        DateTimeOffset createdAt)
+    {
+        var booking = new Booking(reference, roomId, guestId, checkIn, checkOut, guests, guestFullName, guestEmail,
+            guestPhone, specialRequests, priceBreakdown, idempotencyKey, createdAt)
+        {
+            CreatedById = createdById,
+        };
+        booking.Status = BookingStatus.Confirmed;
+        booking.ConfirmedAt = createdAt;
+        booking.ExpiresAt = null;
+        return booking;
+    }
+
     // BOOK-1: the number comes from a database sequence; the year is the creation year in UTC.
     public static string FormatReference(int year, long number) => $"SD-{year}-{number:D6}";
 

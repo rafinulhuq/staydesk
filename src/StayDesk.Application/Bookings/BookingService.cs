@@ -10,20 +10,40 @@ using StayDesk.Domain.Properties;
 
 namespace StayDesk.Application.Bookings;
 
-public sealed class BookingService(IStayDeskDbContext db, PricingService pricing, IBookingEmails emails, TimeProvider time)
+public sealed class BookingService(
+    IStayDeskDbContext db, PricingService pricing, IGuestAccounts accounts, IBookingEmails emails, TimeProvider time)
 {
-    // BOOK-1, BOOK-2, BOOK-8, PRICE-7: a guest books for themselves. Staff walk-ins are 4d.
-    public async Task<BookingCreation> CreateAsync(Guid guestId, Guid? idempotencyKey, CreateBookingRequest request, CancellationToken ct)
+    // BOOK-1, BOOK-2, BOOK-8, PRICE-7. A guest books for themselves and gets a Pending hold;
+    // staff book a walk-in (BOOK-9) for an existing or new guest, Confirmed and paid at the desk.
+    public async Task<BookingCreation> CreateAsync(
+        Guid callerId, bool isStaff, Guid? idempotencyKey, CreateBookingRequest request, CancellationToken ct)
     {
         if (idempotencyKey is not { } key || key == Guid.Empty)
         {
             throw Invalid("IdempotencyKey", "Send an Idempotency-Key header with a UUID.");
         }
+        if (!isStaff && (request.GuestId is not null || request.NewGuest is not null))
+        {
+            throw Invalid(nameof(request.GuestId), "Only staff can book for another guest.");
+        }
+        if (isStaff && request.GuestId is null && request.NewGuest is null)
+        {
+            throw Invalid(nameof(request.GuestId), "Choose a guest or enter new guest details.");
+        }
 
         // A retry of a booking that already went through needs no price check and no lock.
-        if (await FindRetryAsync(guestId, key, request, ct) is { } earlier)
+        if (await FindRetryAsync(callerId, key, request, ct) is { } earlier)
         {
             return new BookingCreation(earlier, Created: false);
+        }
+
+        if (request.GuestId is { } existingGuest && !await accounts.IsActiveGuestAsync(existingGuest, ct))
+        {
+            throw Invalid(nameof(request.GuestId), "No active guest with this id.");
+        }
+        if (request.NewGuest is { } newGuest && await accounts.FindIdByEmailAsync(newGuest.Email, ct) is not null)
+        {
+            throw Invalid("NewGuest.Email", "A guest with this email already exists. Choose them instead.");
         }
 
         var priced = await pricing.PriceStayAsync(request.RoomId, request, ct);
@@ -42,7 +62,7 @@ public sealed class BookingService(IStayDeskDbContext db, PricingService pricing
         await db.LockRoomAsync(priced.Room.Id, ct);
 
         // A double click's second request waited on the lock above; the first one has committed now.
-        if (await FindRetryAsync(guestId, key, request, ct) is { } committed)
+        if (await FindRetryAsync(callerId, key, request, ct) is { } committed)
         {
             return new BookingCreation(committed, Created: false);
         }
@@ -70,17 +90,33 @@ public sealed class BookingService(IStayDeskDbContext db, PricingService pricing
                 $"The room is no longer available from {request.CheckIn:yyyy-MM-dd} to {request.CheckOut:yyyy-MM-dd}.");
         }
 
-        var number = await db.NextBookingNumberAsync(ct);
-        var booking = new Booking(
-            Booking.FormatReference(now.UtcDateTime.Year, number), priced.Room.Id, guestId,
-            request.CheckIn, request.CheckOut, request.Guests,
-            request.GuestFullName.Trim(), request.GuestEmail.Trim(), Blank(request.GuestPhone), Blank(request.SpecialRequests),
-            [.. priced.Quote.Nights], key, now);
+        // Created inside the transaction, so a 409 leaves no orphan account behind.
+        var guestId = request.NewGuest is { } walkInGuest
+            ? await accounts.CreateWithoutPasswordAsync(walkInGuest, now, ct)
+            : request.GuestId ?? callerId;
+
+        var reference = Booking.FormatReference(now.UtcDateTime.Year, await db.NextBookingNumberAsync(ct));
+        var (fullName, email, phone, specialRequests) =
+            (request.GuestFullName.Trim(), request.GuestEmail.Trim(), Blank(request.GuestPhone), Blank(request.SpecialRequests));
+        var booking = isStaff
+            ? Booking.WalkIn(reference, priced.Room.Id, guestId, callerId, request.CheckIn, request.CheckOut, request.Guests,
+                fullName, email, phone, specialRequests, [.. priced.Quote.Nights], key, now)
+            : new Booking(reference, priced.Room.Id, guestId, request.CheckIn, request.CheckOut, request.Guests,
+                fullName, email, phone, specialRequests, [.. priced.Quote.Nights], key, now);
         db.Bookings.Add(booking);
+        if (isStaff)
+        {
+            db.Payments.Add(new Payment(booking.Id, booking.TotalPrice, PaymentProvider.Desk, now));
+        }
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
-        return new BookingCreation(await LoadDetailAsync(booking.Id, ct) ?? throw NotFound(), Created: true);
+        var detail = await LoadDetailAsync(booking.Id, ct) ?? throw NotFound();
+        if (isStaff)
+        {
+            await emails.SendConfirmationAsync(detail, ct);
+        }
+        return new BookingCreation(detail, Created: true);
     }
 
     // BOOK-3 mock payment by the guest who booked. Paying at or after ExpiresAt throws
@@ -167,19 +203,23 @@ public sealed class BookingService(IStayDeskDbContext db, PricingService pricing
 
     // BOOK-8: same key and same booking details returns the original; same key with different
     // details is a client bug, answered with 422. ExpectedTotal is not compared: it describes
-    // what the guest saw, not what they booked.
-    private async Task<BookingDetail?> FindRetryAsync(Guid userId, Guid key, CreateBookingRequest request, CancellationToken ct)
+    // what the guest saw, not what they booked. Keys are per creator, so for walk-ins per staff member.
+    private async Task<BookingDetail?> FindRetryAsync(Guid callerId, Guid key, CreateBookingRequest request, CancellationToken ct)
     {
         var earlier = await db.Bookings.AsNoTracking()
-            .Where(b => b.CreatedById == userId && b.IdempotencyKey == key)
-            .Select(b => new { b.Id, b.RoomId, b.CheckIn, b.CheckOut, b.Guests, b.GuestFullName, b.GuestEmail, b.GuestPhone, b.SpecialRequests })
+            .Where(b => b.CreatedById == callerId && b.IdempotencyKey == key)
+            .Select(b => new { b.Id, b.GuestId, b.RoomId, b.CheckIn, b.CheckOut, b.Guests, b.GuestFullName, b.GuestEmail, b.GuestPhone, b.SpecialRequests })
             .SingleOrDefaultAsync(ct);
         if (earlier is null)
         {
             return null;
         }
 
-        var same = earlier.RoomId == request.RoomId
+        // A new-guest walk-in's retry finds the account the first request created, by email.
+        var guestId = request.GuestId
+            ?? (request.NewGuest is { } newGuest ? await accounts.FindIdByEmailAsync(newGuest.Email, ct) : callerId);
+        var same = earlier.GuestId == guestId
+            && earlier.RoomId == request.RoomId
             && earlier.CheckIn == request.CheckIn
             && earlier.CheckOut == request.CheckOut
             && earlier.Guests == request.Guests

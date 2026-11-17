@@ -2,7 +2,7 @@ using StayDesk.Application.Bookings;
 
 namespace StayDesk.UnitTests.Bookings;
 
-// BOOK-1 guest details and SRCH-2 dates on the create-booking request.
+// BOOK-1 guest details, SRCH-2 dates and BOOK-9 walk-in guest on the create-booking request.
 public class CreateBookingRequestValidatorTests
 {
     private static readonly CreateBookingRequestValidator Validator = new();
@@ -50,6 +50,22 @@ public class CreateBookingRequestValidatorTests
     public void Guests_are_1_to_10(int guests, bool valid)
     {
         Assert.Equal(valid, InvalidFields(Request(guests: guests)).Length == 0);
+    }
+
+    [Fact]
+    public void A_walk_in_names_an_existing_guest_or_a_new_one_not_both()
+    {
+        var both = Request() with { GuestId = Guid.CreateVersion7(), NewGuest = new("Max", "Hoffmann", "max.hoffmann@example.com", null) };
+
+        Assert.Equal(["GuestId"], InvalidFields(both));
+    }
+
+    [Fact]
+    public void New_guest_details_need_names_and_a_valid_email()
+    {
+        var request = Request() with { NewGuest = new("", "Hoffmann", "max.hoffmann", null) };
+
+        Assert.Equal(["NewGuest.FirstName", "NewGuest.Email"], InvalidFields(request));
     }
 
     [Theory]

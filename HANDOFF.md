@@ -2,14 +2,14 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-18 00:30 +06
+**Last updated:** 2026-11-18 01:15 +06
 
 ## Where things stand
 
-- **Phase:** 4c done (pay, cancel with BOOK-5 fee, cancellation quote, expiry job, confirmation email). **Next: 4d**: walk-in bookings for Staff and Admin (BOOK-9): `POST /bookings` with `guestId` or `newGuest`, created Confirmed with a `Desk` payment.
+- **Phase:** 4d done (walk-in bookings). **Next: 4e**: Angular booking stepper (`/book/:roomId`: review stay → guest details → mock payment with a 15-minute countdown), confirmation page, My bookings (`GET /bookings/my`, cancel with quote). Handles `price_changed` and `booking_expired`. Adds the Book button on the room page (T-048).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
-- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058.
+- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059.
 - **Interview notes:** `notes/interview-prep.md` (git-ignored, local only). Append 2–3 talking points there at the end of every sub-feature.
 
 ## Files and what each one is for
@@ -70,5 +70,5 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Next steps
 
-1. Owner decides T-004/T-005/T-050/T-051/T-058 whenever.
-2. Phase 4d: list the requirement IDs (BOOK-9, BOOK-8) and the files to touch. Walk-ins skip Pending, so `Booking` needs a second constructor that starts Confirmed (check-in today allowed), plus a `Desk` payment; new guests are passwordless users like the demo guests in `DbSeeder`. `POST /bookings` currently has `[Authorize(Roles = Guest)]`.
+1. Owner decides T-004/T-005/T-050/T-051/T-058/T-059 whenever.
+2. Phase 4e: list the requirement IDs (BOOK-1, BOOK-3, BOOK-5, BOOK-6, §7 `/book/:roomId`, My bookings) and the files to touch. `GET /bookings/my?scope=upcoming|past` doesn't exist yet; add it with the page. SRS §9 wants a Vitest spec for the stepper's form validation. Send a new `Idempotency-Key` per booking attempt, reused on retry of the same attempt.
