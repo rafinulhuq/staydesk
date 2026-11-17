@@ -8,8 +8,8 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 - **Phase:** 3b done (quote and preview endpoints). **Next: 3c**: `GET /rooms/search` (SRCH-1..4): SQL availability filter with `Booking.IsActiveAt`, then totals from `PricingEngine` in memory for `maxPrice` and price sort, then paging.
 - **Repo:** `main` on GitHub is the only branch.
-- **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md` (decision T-003).
-- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-003, T-004, T-005, T-028, T-032, T-037.
+- **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
+- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037.
 - **Interview notes:** `notes/interview-prep.md` (git-ignored, local only). Append 2–3 talking points there at the end of every sub-feature.
 
 ## Files and what each one is for
@@ -64,5 +64,5 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Next steps
 
-1. Owner decides T-003/T-004/T-005 whenever.
+1. Owner decides T-004/T-005 whenever.
 2. Phase 3c: list the requirement IDs (SRCH-1..4, NFR-6) and the files to touch. Reuse `StayDatesValidator` (`IStayDates`) and the "check-in not before today at the property" check in `PricingService`; load all candidate rooms' rules in one query, not per room.

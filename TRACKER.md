@@ -2,7 +2,7 @@
 
 Every open issue, todo, unverified item and pending decision, in one file. Update it in the same step as the finding, not later. Never write secret values here.
 
-**Last updated:** 2026-11-17 05:00 +06
+**Last updated:** 2026-11-17 +06
 
 **Status values:**
 - **OPEN:** needs doing.
@@ -16,7 +16,6 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 
 | ID | Opened | Priority | Status | Area | Item | Next step |
 |----|--------|----------|--------|------|------|-----------|
-| T-003 | 2026-11-16 | P2 | DECIDE | git | Should the original SRS PDF and `SRS-revision-plan.md` go into the repo? The PDF has the author's name in it. `docs/SRS.md` replaces both. | Owner decides: commit, move outside the repo, or add to `.gitignore` |
 | T-004 | 2026-11-16 | P2 | DECIDE | repo | Licence: MIT (reusable) or none (all rights reserved). | Owner decides |
 | T-005 | 2026-11-16 | P2 | DECIDE | spec | D1–D5 were applied with the recommended options without explicit owner sign-off (see `docs/decisions.md`). | Owner confirms or changes each one |
 | T-006 | 2026-11-16 | P2 | OPEN | spec | The PDF layout was never checked: tables seemed to run past the next heading, and the architecture diagram on page 3 was never viewed. Only matters if the PDF is still shared. | Open the PDF and check pages 3, 11–14 and 17–18 |
@@ -50,6 +49,7 @@ Every open issue, todo, unverified item and pending decision, in one file. Updat
 
 | ID | Closed | Item | Commit |
 |----|--------|------|--------|
+| T-003 | 2026-11-17 | Original SRS PDF and `SRS-revision-plan.md` stay local only, git-ignored; `docs/SRS.md` replaces both | `chore: ignore the original SRS sources` |
 | — | 2026-11-17 | Phase 3b: `POST /pricing/quote` (public, active rooms only) and `POST /pricing/preview` (Admin, draft rule built in memory, returns current and with-rule quotes). SRCH-2 date rules (check-in not before today at the property, 1–30 nights), PRICE-2 rule validation (−90..+300, type-specific fields only); nested validation fields camelCased per segment (`rule.percentChange`). 13 integration + 11 unit tests; 91 backend tests total | Phase 3b commit |
 | — | 2026-11-17 | Phase 3a: `PricingEngine` (Domain, pure, D9) with one strategy per rule type (Seasonal inclusive dates, Weekend Fri/Sat nights, LengthOfStay, LastMinute against today at the property); multiplicative stacking, one AwayFromZero rounding per night, 1.00 floor, total = sum of nights; property and room rules both apply. 15 unit tests (19 cases), mutation-checked; 70 backend tests total | Phase 3a commit |
 | — | 2026-11-17 | Phase 2d: admin properties and rooms pages (Admin-only child routes, back-office tab bar), list tables with show-inactive toggle, deactivate with confirm dialog, reactivate, PROP-5 warning dialog, create/edit forms with server field errors, room version conflict (409) with reload; locale-aware EUR and date pipes. Header language switch is plain buttons now (first load 601 → 526 kB). Fixed: a 429 or network error on refresh no longer drops the session. 28 Vitest; live check in Chrome over CDP at 1280 and 900 px | Phase 2d commit |
