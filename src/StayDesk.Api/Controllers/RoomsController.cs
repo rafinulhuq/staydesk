@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StayDesk.Application.Auth;
+using StayDesk.Application.Paging;
 using StayDesk.Application.Rooms;
 
 namespace StayDesk.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/rooms")]
-public sealed class RoomsController(RoomService rooms) : ControllerBase
+public sealed class RoomsController(RoomService rooms, RoomSearchService search) : ControllerBase
 {
+    [HttpGet("search")]
+    public async Task<Paged<RoomSearchResult>> Search([FromQuery] RoomSearchRequest request, CancellationToken ct) =>
+        await search.SearchAsync(request, ct);
+
     // Admin sees inactive rooms (to edit or reactivate them); everyone else gets 404 for them.
     [HttpGet("{id:guid}")]
     public async Task<RoomDetail> Get(Guid id, CancellationToken ct) =>

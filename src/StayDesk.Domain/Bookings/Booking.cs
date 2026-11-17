@@ -44,6 +44,10 @@ public class Booking
         || b.Status == BookingStatus.CheckedIn
         || (b.Status == BookingStatus.Pending && b.ExpiresAt > now);
 
+    // SRCH-3: check-out is exclusive, so a stay may start on the day another ends.
+    public static Expression<Func<Booking, bool>> Overlaps(DateOnly checkIn, DateOnly checkOut) => b =>
+        b.CheckIn < checkOut && b.CheckOut > checkIn;
+
     // EF Core materialises through this; owned PriceBreakdown can't bind to a constructor.
     private Booking()
     {

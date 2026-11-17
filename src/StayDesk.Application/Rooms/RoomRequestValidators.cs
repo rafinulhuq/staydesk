@@ -1,4 +1,6 @@
 using FluentValidation;
+using StayDesk.Application.Paging;
+using StayDesk.Application.Pricing;
 using StayDesk.Application.Validation;
 
 namespace StayDesk.Application.Rooms;
@@ -31,5 +33,23 @@ public sealed class UpdateRoomRequestValidator : AbstractValidator<UpdateRoomReq
     public UpdateRoomRequestValidator()
     {
         Include(new RoomFieldsValidator());
+    }
+}
+
+// SRCH-2 and SRCH-4. "Check-in is today or later" needs each property's time zone, so
+// RoomSearchService checks it.
+public sealed class RoomSearchRequestValidator : AbstractValidator<RoomSearchRequest>
+{
+    public RoomSearchRequestValidator()
+    {
+        RuleFor(s => s.City).NotEmpty().MaximumLength(100);
+        Include(new StayDatesValidator());
+        RuleFor(s => s.Guests).InclusiveBetween(1, 10);
+        RuleFor(s => s.Type).IsInEnum();
+        RuleFor(s => s.MaxPrice).GreaterThan(0);
+        RuleFor(s => s.Sort).IsInEnum();
+        RuleFor(s => s.Dir).IsInEnum();
+        RuleFor(s => s.Page).GreaterThanOrEqualTo(1);
+        RuleFor(s => s.PageSize).InclusiveBetween(1, Paged<RoomSearchResult>.MaxPageSize);
     }
 }

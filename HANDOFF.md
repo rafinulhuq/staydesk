@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 05:00 +06
+**Last updated:** 2026-11-17 19:10 +06
 
 ## Where things stand
 
-- **Phase:** 3b done (quote and preview endpoints). **Next: 3c**: `GET /rooms/search` (SRCH-1..4): SQL availability filter with `Booking.IsActiveAt`, then totals from `PricingEngine` in memory for `maxPrice` and price sort, then paging.
+- **Phase:** 3c done (`GET /rooms/search`). **Next: 3d**: home, search, property and room pages (Angular), including the search filter ↔ URL sync test (SRS §9).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037.
@@ -39,7 +39,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Gotchas found so far
 
-- **This machine:** the agent shell runs inside the VS Code Flatpak sandbox. `dotnet` and `docker` exist only on the host, so run them as `flatpak-spawn --host --directory=<repo> sh -c '…'`. Node/npm work directly in the sandbox.
+- **This machine:** the agent shell runs inside the VS Code Flatpak sandbox. `docker` exists only on the host, so run it as `flatpak-spawn --host --directory=<repo> sh -c '…'`. `dotnet` works in the sandbox through the wrapper `~/.local/bin/dotnet` (it runs the host install under `/run/host`); VS Code's .NET extensions use the same install via `dotnetAcquisitionExtension.sharedExistingDotnetPath`. Node/npm work directly in the sandbox.
 - Local secrets on this machine (user-secrets for `src/StayDesk.Api`): `ConnectionStrings:Default` and `Seed:{Admin,Staff,Guest}Password`. A fresh clone needs them set (see `AGENTS.md` Commands), or use `docker compose up`.
 - Tests use xUnit v3 on Microsoft.Testing.Platform (D7). Pass `TestContext.Current.CancellationToken` to async calls (analyzer xUnit1051 is an error). `dotnet test --project <csproj>` to run one project.
 - Testcontainers finds Docker Desktop through the Docker context; no `DOCKER_HOST` needed. The local API connection string is in user-secrets on this machine.
