@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalDatePipe } from '../../shared/local-date.pipe';
-import { ActiveBookingWarning } from './inventory.models';
+import { ActiveBookingWarning } from '../../shared/inventory.models';
 
 // PROP-5: the room is already deactivated; this tells Admin which stays still use it.
 @Component({

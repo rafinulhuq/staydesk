@@ -51,3 +51,13 @@ public sealed record RoomDetail(
 public sealed record RoomDeactivation(IReadOnlyList<ActiveBookingWarning> ActiveBookings);
 
 public sealed record ActiveBookingWarning(Guid BookingId, string Reference, DateOnly CheckIn, DateOnly CheckOut, string GuestFullName);
+
+// Bound from the query string (from, to); to is exclusive, like check-out.
+public sealed class RoomAvailabilityRequest
+{
+    public DateOnly From { get; init; }
+    public DateOnly To { get; init; }
+}
+
+// SRCH-5: a date is booked when its night is taken.
+public sealed record RoomAvailability(Guid RoomId, DateOnly From, DateOnly To, IReadOnlyList<DateOnly> BookedDates);

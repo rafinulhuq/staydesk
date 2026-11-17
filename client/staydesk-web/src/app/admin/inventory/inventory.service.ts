@@ -10,7 +10,7 @@ import {
   RoomDeactivation,
   RoomDetail,
   UpdateRoomRequest,
-} from './inventory.models';
+} from '../../shared/inventory.models';
 
 // Admin calls always ask for inactive rows too (PROP-3), so they can be edited and reactivated.
 @Injectable({ providedIn: 'root' })

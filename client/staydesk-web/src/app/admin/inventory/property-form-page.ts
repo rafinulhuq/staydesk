@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { applyServerErrors } from '../../shared/server-errors';
-import { PropertyDetail, PropertyRequest } from './inventory.models';
+import { PropertyDetail, PropertyRequest } from '../../shared/inventory.models';
 import { InventoryService } from './inventory.service';
 
 // Create (/admin/properties/new) and edit (/admin/properties/:id) share this page.

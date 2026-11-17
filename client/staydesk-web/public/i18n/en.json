@@ -3,7 +3,8 @@
     "close": "Close",
     "loading": "Loading",
     "cancel": "Cancel",
-    "retry": "Try again"
+    "retry": "Try again",
+    "backHome": "Back to the home page"
   },
   "nav": {
     "admin": "Back office",
@@ -14,7 +15,98 @@
     "language": "Language"
   },
   "home": {
-    "title": "Find a room in Berlin, Munich or Hamburg"
+    "title": "Find a room in Berlin, Munich or Hamburg",
+    "featured": "Our properties",
+    "empty": "No properties to show yet.",
+    "loadFailed": "Couldn't load the properties."
+  },
+  "search": {
+    "fields": {
+      "city": "City",
+      "dates": "Check-in – check-out",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "guests": "Guests"
+    },
+    "submit": "Search",
+    "prompt": "Enter a city, dates and the number of guests to see free rooms.",
+    "errors": {
+      "dates": "Pick a check-in from today and a later check-out",
+      "guests": "Between 1 and 10",
+      "maxStay": "A stay is at most {{nights}} nights.",
+      "invalid": "Check the dates and number of guests: check-in can't be in the past, and a stay is 1 to 30 nights.",
+      "loadFailed": "Couldn't load the rooms."
+    },
+    "filters": {
+      "title": "Filters",
+      "type": "Room type",
+      "anyType": "Any type",
+      "maxPrice": "Max. total price",
+      "maxPriceHint": "For the whole stay",
+      "amenities": "Amenities"
+    },
+    "count": {
+      "one": "1 free room in {{city}}",
+      "other": "{{count}} free rooms in {{city}}"
+    },
+    "sort": {
+      "label": "Sort by",
+      "price-asc": "Price, lowest first",
+      "price-desc": "Price, highest first",
+      "capacity-desc": "Guests, most first",
+      "capacity-asc": "Guests, fewest first"
+    },
+    "empty": "No free rooms in {{city}} from {{from}} to {{to}}. Try other dates or fewer filters.",
+    "card": {
+      "room": "room {{number}}",
+      "maxGuests": {
+        "one": "Up to 1 guest",
+        "other": "Up to {{count}} guests"
+      },
+      "forNights": {
+        "one": "total for 1 night",
+        "other": "total for {{count}} nights"
+      }
+    },
+    "pager": {
+      "label": "Result pages",
+      "previous": "Previous",
+      "next": "Next",
+      "position": "Page {{page}} of {{pages}}"
+    }
+  },
+  "property": {
+    "notFound": "This property isn't available.",
+    "loadFailed": "Couldn't load the property.",
+    "checkIn": "Check-in from",
+    "checkOut": "Check-out until",
+    "map": "Map",
+    "rooms": "Rooms",
+    "noRooms": "No rooms are open for booking here right now.",
+    "basePrice": "From {{price}} per night"
+  },
+  "room": {
+    "notFound": "This room isn't available.",
+    "loadFailed": "Couldn't load the room.",
+    "maxGuests": "Max. guests",
+    "basePrice": "Base price per night",
+    "amenities": "Amenities",
+    "availability": "Availability, next 60 days",
+    "availabilityHint": "Crossed-out dates are booked.",
+    "availabilityMissing": "Availability couldn't be loaded.",
+    "quote": {
+      "title": "Price for your stay",
+      "pickDates": "Pick check-in and check-out to see the price for each night.",
+      "invalid": "Check the dates: check-in can't be in the past, and a stay is 1 to 30 nights.",
+      "failed": "Couldn't calculate the price.",
+      "night": "Night",
+      "rules": "Price rules",
+      "price": "Price",
+      "total": {
+        "one": "Total, 1 night",
+        "other": "Total, {{count}} nights"
+      }
+    }
   },
   "account": {
     "bookings": {

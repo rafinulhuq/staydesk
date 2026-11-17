@@ -53,3 +53,17 @@ public sealed class RoomSearchRequestValidator : AbstractValidator<RoomSearchReq
         RuleFor(s => s.PageSize).InclusiveBetween(1, Paged<RoomSearchResult>.MaxPageSize);
     }
 }
+
+// SRS §6: at most 90 days per request.
+public sealed class RoomAvailabilityRequestValidator : AbstractValidator<RoomAvailabilityRequest>
+{
+    public const int MaxDays = 90;
+
+    public RoomAvailabilityRequestValidator()
+    {
+        RuleFor(r => r.To)
+            .GreaterThan(r => r.From).WithMessage("'to' must be after 'from'.")
+            .Must((r, to) => to.DayNumber - r.From.DayNumber <= MaxDays)
+            .WithMessage($"At most {MaxDays} days per request.");
+    }
+}

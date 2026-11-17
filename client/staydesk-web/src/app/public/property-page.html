@@ -1,0 +1,81 @@
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('notFound') {
+    <p class="state">{{ 'property.notFound' | translate }}</p>
+    <a mat-button routerLink="/">{{ 'common.backHome' | translate }}</a>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'property.loadFailed' | translate }}
+      <button mat-button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </p>
+  }
+  @default {
+    @if (property(); as p) {
+      <header class="page-title">
+        <h1>{{ p.name }}</h1>
+        <p>{{ p.address }}</p>
+      </header>
+
+      @if (images().length > 0) {
+        <div class="gallery">
+          @for (url of images(); track url) {
+            <img [src]="url" alt="" loading="lazy" />
+          }
+        </div>
+      }
+
+      <div class="columns">
+        <section>
+          <p class="description">{{ p.description }}</p>
+          <dl class="facts">
+            <dt>{{ 'property.checkIn' | translate }}</dt>
+            <dd>{{ p.checkInTime.slice(0, 5) }}</dd>
+            <dt>{{ 'property.checkOut' | translate }}</dt>
+            <dd>{{ p.checkOutTime.slice(0, 5) }}</dd>
+          </dl>
+        </section>
+        <!-- SRS §7 asks for a map placeholder only; no map provider is chosen. -->
+        <div class="map-placeholder" role="img" [attr.aria-label]="p.address">
+          {{ 'property.map' | translate }}
+          <span>{{ p.address }}</span>
+        </div>
+      </div>
+
+      <section>
+        <h2>{{ 'property.rooms' | translate }}</h2>
+        @if (rooms().length === 0) {
+          <p class="state">{{ 'property.noRooms' | translate }}</p>
+        } @else {
+          <ul class="cards">
+            @for (room of rooms(); track room.id) {
+              <li>
+                <mat-card appearance="outlined">
+                  <mat-card-header>
+                    <mat-card-title>
+                      <a [routerLink]="['/rooms', room.id]">
+                        {{ 'roomTypes.' + room.type | translate }}
+                        {{ 'search.card.room' | translate: { number: room.roomNumber } }}
+                      </a>
+                    </mat-card-title>
+                    <mat-card-subtitle>
+                      {{
+                        'search.card.maxGuests.' + plural(room.maxGuests)
+                          | translate: { count: room.maxGuests }
+                      }}
+                    </mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <p>{{ 'property.basePrice' | translate: { price: (room.basePrice | eur) } }}</p>
+                  </mat-card-content>
+                </mat-card>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  }
+}

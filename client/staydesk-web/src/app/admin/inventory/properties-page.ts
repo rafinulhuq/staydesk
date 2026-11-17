@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, switchMap } from 'rxjs';
 import { ConfirmDialog, ConfirmDialogData } from '../../shared/confirm-dialog';
-import { PropertySummary } from './inventory.models';
+import { PropertySummary } from '../../shared/inventory.models';
 import { InventoryService } from './inventory.service';
 
 @Component({

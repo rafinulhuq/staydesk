@@ -7,7 +7,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { ActiveBookingsDialog } from './active-bookings-dialog';
-import { ActiveBookingWarning, RoomDetail } from './inventory.models';
+import { ActiveBookingWarning, RoomDetail } from '../../shared/inventory.models';
 import { RoomsPage } from './rooms-page';
 
 function room(id: string, roomNumber: string): RoomDetail {

@@ -12,7 +12,7 @@ import { filter, map, switchMap, tap } from 'rxjs';
 import { ConfirmDialog, ConfirmDialogData } from '../../shared/confirm-dialog';
 import { EurPipe } from '../../shared/eur.pipe';
 import { ActiveBookingsDialog } from './active-bookings-dialog';
-import { PropertySummary, RoomDetail } from './inventory.models';
+import { PropertySummary, RoomDetail } from '../../shared/inventory.models';
 import { InventoryService } from './inventory.service';
 
 // "2" before "10": the API orders room numbers as text (T-034).

@@ -28,6 +28,36 @@ public sealed class RoomService(IStayDeskDbContext db, TimeProvider time)
             ?? throw NotFound();
     }
 
+    // SRCH-5: the nights active bookings hold, for the room page's calendar. The endpoint is
+    // public, so it returns dates only, never who booked.
+    public async Task<RoomAvailability> GetAvailabilityAsync(Guid id, RoomAvailabilityRequest request, CancellationToken ct)
+    {
+        if (!await db.Rooms.AnyAsync(r => r.Id == id && db.Properties.Any(p => p.Id == r.PropertyId), ct))
+        {
+            throw NotFound();
+        }
+
+        var stays = await db.Bookings.AsNoTracking()
+            .Where(b => b.RoomId == id)
+            .Where(Booking.IsActiveAt(time.GetUtcNow()))
+            .Where(Booking.Overlaps(request.From, request.To))
+            .Select(b => new { b.CheckIn, b.CheckOut })
+            .ToListAsync(ct);
+
+        // Each booking's nights, clipped to the requested range; check-out day stays free.
+        var bookedDates = stays
+            .SelectMany(s =>
+            {
+                var first = s.CheckIn > request.From ? s.CheckIn : request.From;
+                var end = s.CheckOut < request.To ? s.CheckOut : request.To;
+                return Enumerable.Range(first.DayNumber, end.DayNumber - first.DayNumber).Select(DateOnly.FromDayNumber);
+            })
+            .Distinct()
+            .Order()
+            .ToList();
+        return new RoomAvailability(id, request.From, request.To, bookedDates);
+    }
+
     public async Task<IReadOnlyList<AmenitySummary>> ListAmenitiesAsync(CancellationToken ct) =>
         await db.Amenities.AsNoTracking()
             .OrderBy(a => a.Name)

@@ -3,7 +3,8 @@
     "close": "Schließen",
     "loading": "Wird geladen",
     "cancel": "Abbrechen",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "backHome": "Zur Startseite"
   },
   "nav": {
     "admin": "Backoffice",
@@ -14,7 +15,98 @@
     "language": "Sprache"
   },
   "home": {
-    "title": "Zimmer in Berlin, München oder Hamburg finden"
+    "title": "Zimmer in Berlin, München oder Hamburg finden",
+    "featured": "Unsere Häuser",
+    "empty": "Noch keine Häuser vorhanden.",
+    "loadFailed": "Die Häuser konnten nicht geladen werden."
+  },
+  "search": {
+    "fields": {
+      "city": "Stadt",
+      "dates": "Anreise – Abreise",
+      "checkIn": "Anreise",
+      "checkOut": "Abreise",
+      "guests": "Gäste"
+    },
+    "submit": "Suchen",
+    "prompt": "Geben Sie Stadt, Reisedaten und Anzahl der Gäste ein, um freie Zimmer zu sehen.",
+    "errors": {
+      "dates": "Anreise ab heute und eine spätere Abreise wählen",
+      "guests": "Zwischen 1 und 10",
+      "maxStay": "Ein Aufenthalt dauert höchstens {{nights}} Nächte.",
+      "invalid": "Bitte Reisedaten und Gästezahl prüfen: Die Anreise darf nicht in der Vergangenheit liegen, und ein Aufenthalt dauert 1 bis 30 Nächte.",
+      "loadFailed": "Die Zimmer konnten nicht geladen werden."
+    },
+    "filters": {
+      "title": "Filter",
+      "type": "Zimmertyp",
+      "anyType": "Alle Typen",
+      "maxPrice": "Max. Gesamtpreis",
+      "maxPriceHint": "Für den ganzen Aufenthalt",
+      "amenities": "Ausstattung"
+    },
+    "count": {
+      "one": "1 freies Zimmer in {{city}}",
+      "other": "{{count}} freie Zimmer in {{city}}"
+    },
+    "sort": {
+      "label": "Sortieren nach",
+      "price-asc": "Preis aufsteigend",
+      "price-desc": "Preis absteigend",
+      "capacity-desc": "Gäste, meiste zuerst",
+      "capacity-asc": "Gäste, wenigste zuerst"
+    },
+    "empty": "Keine freien Zimmer in {{city}} vom {{from}} bis {{to}}. Andere Daten oder weniger Filter versuchen.",
+    "card": {
+      "room": "Nr. {{number}}",
+      "maxGuests": {
+        "one": "Für 1 Gast",
+        "other": "Für bis zu {{count}} Gäste"
+      },
+      "forNights": {
+        "one": "gesamt für 1 Nacht",
+        "other": "gesamt für {{count}} Nächte"
+      }
+    },
+    "pager": {
+      "label": "Ergebnisseiten",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "position": "Seite {{page}} von {{pages}}"
+    }
+  },
+  "property": {
+    "notFound": "Dieses Haus ist nicht verfügbar.",
+    "loadFailed": "Das Haus konnte nicht geladen werden.",
+    "checkIn": "Anreise ab",
+    "checkOut": "Abreise bis",
+    "map": "Karte",
+    "rooms": "Zimmer",
+    "noRooms": "Hier sind gerade keine Zimmer buchbar.",
+    "basePrice": "Ab {{price}} pro Nacht"
+  },
+  "room": {
+    "notFound": "Dieses Zimmer ist nicht verfügbar.",
+    "loadFailed": "Das Zimmer konnte nicht geladen werden.",
+    "maxGuests": "Max. Gäste",
+    "basePrice": "Grundpreis pro Nacht",
+    "amenities": "Ausstattung",
+    "availability": "Verfügbarkeit, nächste 60 Tage",
+    "availabilityHint": "Durchgestrichene Tage sind belegt.",
+    "availabilityMissing": "Die Verfügbarkeit konnte nicht geladen werden.",
+    "quote": {
+      "title": "Preis für Ihren Aufenthalt",
+      "pickDates": "Anreise und Abreise wählen, um den Preis jeder Nacht zu sehen.",
+      "invalid": "Bitte Reisedaten prüfen: Die Anreise darf nicht in der Vergangenheit liegen, und ein Aufenthalt dauert 1 bis 30 Nächte.",
+      "failed": "Der Preis konnte nicht berechnet werden.",
+      "night": "Nacht",
+      "rules": "Preisregeln",
+      "price": "Preis",
+      "total": {
+        "one": "Gesamt, 1 Nacht",
+        "other": "Gesamt, {{count}} Nächte"
+      }
+    }
   },
   "account": {
     "bookings": {

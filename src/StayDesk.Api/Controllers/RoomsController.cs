@@ -19,6 +19,10 @@ public sealed class RoomsController(RoomService rooms, RoomSearchService search)
     public async Task<RoomDetail> Get(Guid id, CancellationToken ct) =>
         await rooms.GetAsync(id, includeInactive: User.IsInRole(Roles.Admin), ct);
 
+    [HttpGet("{id:guid}/availability")]
+    public async Task<RoomAvailability> Availability(Guid id, [FromQuery] RoomAvailabilityRequest request, CancellationToken ct) =>
+        await rooms.GetAvailabilityAsync(id, request, ct);
+
     [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<ActionResult<RoomDetail>> Create(CreateRoomRequest request, CancellationToken ct)

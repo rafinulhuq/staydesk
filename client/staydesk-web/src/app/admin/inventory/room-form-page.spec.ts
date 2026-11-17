@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { RoomDetail } from './inventory.models';
+import { RoomDetail } from '../../shared/inventory.models';
 import { RoomFormPage } from './room-form-page';
 
 function room(version: number, basePrice: number): RoomDetail {

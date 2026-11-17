@@ -13,7 +13,7 @@ using StayDesk.Infrastructure.Persistence;
 
 namespace StayDesk.IntegrationTests;
 
-// SRCH-1..4. Each test uses its own city, so seed data and other tests never show up in the results.
+// SRCH-1..5. Each test uses its own city, so seed data and other tests never show up in the results.
 public class RoomSearchTests(ApiFixture api) : IClassFixture<ApiFixture>
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -159,6 +159,65 @@ public class RoomSearchTests(ApiFixture api) : IClassFixture<ApiFixture>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var errors = (await response.Content.ReadFromJsonAsync<JsonElement>(Ct)).GetProperty("errors");
         Assert.True(errors.TryGetProperty("checkIn", out _));
+    }
+
+    [Fact]
+    public async Task Availability_lists_the_booked_nights_inside_the_range_and_ignores_expired_holds()
+    {
+        var from = NextThursday();
+        var (_, property) = await NewPropertyAsync();
+        var room = new Room(property.Id, "1", RoomType.Double, 2, 100.00m);
+        await SaveAsync(async db =>
+        {
+            db.Rooms.Add(room);
+            var guestId = (await db.Users.SingleAsync(u => u.Email == "guest@example.com", Ct)).Id;
+            var now = DateTimeOffset.UtcNow;
+            // Starts before the range, so only its last night is inside it.
+            db.Bookings.Add(NewBooking(room, guestId, from.AddDays(-2), from.AddDays(1), now));
+            db.Bookings.Add(NewBooking(room, guestId, from.AddDays(3), from.AddDays(5), now));
+            db.Bookings.Add(NewBooking(room, guestId, from.AddDays(6), from.AddDays(8), now - TimeSpan.FromHours(1)));
+        });
+
+        var response = await api.Factory.CreateClient().GetAsync(
+            $"/api/v1/rooms/{room.Id}/availability?from={from:yyyy-MM-dd}&to={from.AddDays(10):yyyy-MM-dd}", Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var availability = (await response.Content.ReadFromJsonAsync<RoomAvailability>(ApiFixture.Json, Ct))!;
+        Assert.Equal([from, from.AddDays(3), from.AddDays(4)], availability.BookedDates);
+    }
+
+    [Fact]
+    public async Task Availability_allows_at_most_90_days()
+    {
+        var from = NextThursday();
+        var (_, property) = await NewPropertyAsync();
+        var room = new Room(property.Id, "1", RoomType.Double, 2, 100.00m);
+        await SaveAsync(db => { db.Rooms.Add(room); return Task.CompletedTask; });
+        var client = api.Factory.CreateClient();
+
+        var ninety = await client.GetAsync($"/api/v1/rooms/{room.Id}/availability?from={from:yyyy-MM-dd}&to={from.AddDays(90):yyyy-MM-dd}", Ct);
+        var ninetyOne = await client.GetAsync($"/api/v1/rooms/{room.Id}/availability?from={from:yyyy-MM-dd}&to={from.AddDays(91):yyyy-MM-dd}", Ct);
+
+        Assert.Equal(HttpStatusCode.OK, ninety.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, ninetyOne.StatusCode);
+    }
+
+    [Fact]
+    public async Task Availability_of_a_room_in_a_deactivated_property_returns_404()
+    {
+        var (_, property) = await NewPropertyAsync();
+        var room = new Room(property.Id, "1", RoomType.Double, 2, 100.00m);
+        await SaveAsync(async db =>
+        {
+            db.Rooms.Add(room);
+            (await db.Properties.SingleAsync(p => p.Id == property.Id, Ct)).Deactivate();
+        });
+        var from = NextThursday();
+
+        var response = await api.Factory.CreateClient().GetAsync(
+            $"/api/v1/rooms/{room.Id}/availability?from={from:yyyy-MM-dd}&to={from.AddDays(60):yyyy-MM-dd}", Ct);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     private async Task<Paged<RoomSearchResult>> SearchAsync(string query)

@@ -1,0 +1,148 @@
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('notFound') {
+    <p class="state">{{ 'room.notFound' | translate }}</p>
+    <a mat-button routerLink="/">{{ 'common.backHome' | translate }}</a>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'room.loadFailed' | translate }}
+      <button mat-button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </p>
+  }
+  @default {
+    @if (room(); as r) {
+      <header class="page-title">
+        <h1>
+          {{ 'roomTypes.' + r.type | translate }}
+          {{ 'search.card.room' | translate: { number: r.roomNumber } }}
+        </h1>
+        @if (property(); as p) {
+          <p>
+            <a [routerLink]="['/properties', p.id]">{{ p.name }}</a>, {{ p.address }}
+          </p>
+        }
+      </header>
+
+      @if (r.imageUrls.length > 0) {
+        <div class="gallery">
+          @for (url of r.imageUrls; track url) {
+            <img [src]="url" alt="" loading="lazy" />
+          }
+        </div>
+      }
+
+      <div class="columns">
+        <section>
+          <dl class="facts">
+            <dt>{{ 'room.maxGuests' | translate }}</dt>
+            <dd>{{ r.maxGuests }}</dd>
+            <dt>{{ 'room.basePrice' | translate }}</dt>
+            <dd>{{ r.basePrice | eur }}</dd>
+          </dl>
+          @if (r.amenities.length > 0) {
+            <h2>{{ 'room.amenities' | translate }}</h2>
+            <ul class="amenity-list">
+              @for (amenity of r.amenities; track amenity.id) {
+                <li>{{ amenity.name }}</li>
+              }
+            </ul>
+          }
+
+          <h2>{{ 'room.availability' | translate }}</h2>
+          @if (bookedDates()) {
+            <mat-calendar
+              class="availability"
+              [minDate]="today"
+              [maxDate]="lastCalendarDay"
+              [dateFilter]="isFree"
+              [dateClass]="bookedClass"
+            />
+            <p class="hint">{{ 'room.availabilityHint' | translate }}</p>
+          } @else {
+            <p class="hint">{{ 'room.availabilityMissing' | translate }}</p>
+          }
+        </section>
+
+        <section class="quote" aria-live="polite">
+          <h2>{{ 'room.quote.title' | translate }}</h2>
+          <form [formGroup]="stay">
+            <mat-form-field>
+              <mat-label>{{ 'search.fields.dates' | translate }}</mat-label>
+              <mat-date-range-input [rangePicker]="picker" [min]="today">
+                <input
+                  matStartDate
+                  formControlName="checkIn"
+                  [placeholder]="'search.fields.checkIn' | translate"
+                />
+                <input
+                  matEndDate
+                  formControlName="checkOut"
+                  [placeholder]="'search.fields.checkOut' | translate"
+                />
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="picker" />
+              <mat-date-range-picker #picker />
+            </mat-form-field>
+          </form>
+
+          @switch (quoteState()) {
+            @case ('idle') {
+              <p class="hint">{{ 'room.quote.pickDates' | translate }}</p>
+            }
+            @case ('loading') {
+              <p class="hint">{{ 'common.loading' | translate }}</p>
+            }
+            @case ('invalid') {
+              <p class="state-error" role="alert">{{ 'room.quote.invalid' | translate }}</p>
+            }
+            @case ('error') {
+              <p class="state-error" role="alert">{{ 'room.quote.failed' | translate }}</p>
+            }
+            @default {
+              @if (quote(); as q) {
+                <table class="breakdown">
+                  <thead>
+                    <tr>
+                      <th scope="col">{{ 'room.quote.night' | translate }}</th>
+                      <th scope="col">{{ 'room.quote.rules' | translate }}</th>
+                      <th scope="col" class="amount">{{ 'room.quote.price' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (night of q.nights; track night.date) {
+                      <tr>
+                        <td>{{ night.date | localDate }}</td>
+                        <td>
+                          @for (rule of night.rules; track rule.name) {
+                            <span class="rule">
+                              {{ rule.name }} ({{ rule.percentChange > 0 ? '+' : ''
+                              }}{{ rule.percentChange }} %)
+                            </span>
+                          }
+                        </td>
+                        <td class="amount">{{ night.price | eur }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th scope="row" colspan="2">
+                        {{
+                          'room.quote.total.' + plural(nights()) | translate: { count: nights() }
+                        }}
+                      </th>
+                      <td class="amount total">{{ q.total | eur }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              }
+            }
+          }
+        </section>
+      </div>
+    }
+  }
+}

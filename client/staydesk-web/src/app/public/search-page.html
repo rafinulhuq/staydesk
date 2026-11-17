@@ -1,0 +1,176 @@
+<section class="search-bar">
+  <sd-stay-search-form [value]="staySearch()" (searched)="newSearch($event)" />
+</section>
+
+@if (query(); as q) {
+  <div class="layout">
+    <aside class="filters" [attr.aria-label]="'search.filters.title' | translate">
+      <h2>{{ 'search.filters.title' | translate }}</h2>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ 'search.filters.type' | translate }}</mat-label>
+        <mat-select [value]="q.type" (selectionChange)="setType($event.value)">
+          <mat-option [value]="null">{{ 'search.filters.anyType' | translate }}</mat-option>
+          @for (type of roomTypes; track type) {
+            <mat-option [value]="type">{{ 'roomTypes.' + type | translate }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ 'search.filters.maxPrice' | translate }}</mat-label>
+        <input
+          #maxPrice
+          matInput
+          type="number"
+          min="1"
+          [value]="q.maxPrice ?? ''"
+          (change)="setMaxPrice(maxPrice.value)"
+        />
+        <span matTextSuffix>€</span>
+        <mat-hint>{{ 'search.filters.maxPriceHint' | translate }}</mat-hint>
+      </mat-form-field>
+
+      @if (amenities().length > 0) {
+        <fieldset>
+          <legend>{{ 'search.filters.amenities' | translate }}</legend>
+          @for (amenity of amenities(); track amenity.id) {
+            <mat-checkbox
+              [checked]="q.amenities.includes(amenity.id)"
+              (change)="toggleAmenity(amenity.id, $event.checked)"
+            >
+              {{ amenity.name }}
+            </mat-checkbox>
+          }
+        </fieldset>
+      }
+    </aside>
+
+    <section class="results" aria-live="polite">
+      <div class="results-header">
+        <p class="count">
+          @if (state() === 'loaded' && result(); as r) {
+            {{
+              'search.count.' + plural(r.totalCount)
+                | translate: { count: r.totalCount, city: q.city }
+            }}
+          }
+        </p>
+        <mat-form-field subscriptSizing="dynamic" class="sort">
+          <mat-label>{{ 'search.sort.label' | translate }}</mat-label>
+          <mat-select [value]="sort()" (selectionChange)="setSort($event.value)">
+            @for (option of sortOptions; track option) {
+              <mat-option [value]="option">{{ 'search.sort.' + option | translate }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      @switch (state()) {
+        @case ('loading') {
+          <p class="state">{{ 'common.loading' | translate }}</p>
+        }
+        @case ('invalid') {
+          <p class="state state-error" role="alert">{{ 'search.errors.invalid' | translate }}</p>
+        }
+        @case ('error') {
+          <p class="state state-error" role="alert">
+            {{ 'search.errors.loadFailed' | translate }}
+            <button mat-button type="button" (click)="load()">
+              {{ 'common.retry' | translate }}
+            </button>
+          </p>
+        }
+        @default {
+          @if (result(); as r) {
+            @if (r.items.length === 0) {
+              <p class="state">
+                {{
+                  'search.empty'
+                    | translate
+                      : {
+                          city: q.city,
+                          from: (q.checkIn | localDate),
+                          to: (q.checkOut | localDate),
+                        }
+                }}
+              </p>
+            } @else {
+              <ul class="cards">
+                @for (room of r.items; track room.roomId) {
+                  <li>
+                    <mat-card appearance="outlined">
+                      @if (room.imageUrl) {
+                        <img mat-card-image [src]="room.imageUrl" alt="" loading="lazy" />
+                      }
+                      <mat-card-header>
+                        <mat-card-title>
+                          <a
+                            [routerLink]="['/rooms', room.roomId]"
+                            [queryParams]="{ checkIn: q.checkIn, checkOut: q.checkOut }"
+                          >
+                            {{ 'roomTypes.' + room.type | translate }}
+                            {{ 'search.card.room' | translate: { number: room.roomNumber } }}
+                          </a>
+                        </mat-card-title>
+                        <mat-card-subtitle>
+                          {{ room.propertyName }}, {{ room.city }}
+                        </mat-card-subtitle>
+                      </mat-card-header>
+                      <mat-card-content>
+                        <p>
+                          {{
+                            'search.card.maxGuests.' + plural(room.maxGuests)
+                              | translate: { count: room.maxGuests }
+                          }}
+                        </p>
+                        @if (room.amenities.length > 0) {
+                          <p class="amenities">{{ amenityNames(room) }}</p>
+                        }
+                      </mat-card-content>
+                      <mat-card-footer>
+                        <span class="total">{{ room.total | eur }}</span>
+                        <span class="nights">
+                          {{
+                            'search.card.forNights.' + plural(nights())
+                              | translate: { count: nights() }
+                          }}
+                        </span>
+                      </mat-card-footer>
+                    </mat-card>
+                  </li>
+                }
+              </ul>
+
+              @if (r.totalPages > 1) {
+                <nav class="pager" [attr.aria-label]="'search.pager.label' | translate">
+                  <button
+                    mat-button
+                    type="button"
+                    [disabled]="r.page <= 1"
+                    (click)="goToPage(r.page - 1)"
+                  >
+                    {{ 'search.pager.previous' | translate }}
+                  </button>
+                  <span>
+                    {{ 'search.pager.position' | translate: { page: r.page, pages: r.totalPages } }}
+                  </span>
+                  <button
+                    mat-button
+                    type="button"
+                    [disabled]="r.page >= r.totalPages"
+                    (click)="goToPage(r.page + 1)"
+                  >
+                    {{ 'search.pager.next' | translate }}
+                  </button>
+                </nav>
+              }
+            }
+          }
+        }
+      }
+    </section>
+  </div>
+} @else {
+  <p class="state">{{ 'search.prompt' | translate }}</p>
+}

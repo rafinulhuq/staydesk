@@ -1,0 +1,46 @@
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <mat-form-field class="city">
+    <mat-label>{{ 'search.fields.city' | translate }}</mat-label>
+    <input matInput formControlName="city" autocomplete="address-level2" />
+    @if (form.controls.city.hasError('required')) {
+      <mat-error>{{ 'validation.required' | translate }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field class="dates">
+    <mat-label>{{ 'search.fields.dates' | translate }}</mat-label>
+    <mat-date-range-input [rangePicker]="picker" [min]="today">
+      <input
+        matStartDate
+        formControlName="checkIn"
+        [placeholder]="'search.fields.checkIn' | translate"
+      />
+      <input
+        matEndDate
+        formControlName="checkOut"
+        [placeholder]="'search.fields.checkOut' | translate"
+      />
+    </mat-date-range-input>
+    <mat-datepicker-toggle matIconSuffix [for]="picker" />
+    <mat-date-range-picker #picker />
+    @if (form.controls.checkIn.invalid || form.controls.checkOut.invalid) {
+      <mat-error>{{ 'search.errors.dates' | translate }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field class="guests">
+    <mat-label>{{ 'search.fields.guests' | translate }}</mat-label>
+    <input matInput type="number" min="1" max="10" formControlName="guests" />
+    @if (form.controls.guests.invalid) {
+      <mat-error>{{ 'search.errors.guests' | translate }}</mat-error>
+    }
+  </mat-form-field>
+
+  <button mat-flat-button type="submit">{{ 'search.submit' | translate }}</button>
+
+  @if (form.hasError('maxStay') && form.touched) {
+    <p class="form-error" role="alert">
+      {{ 'search.errors.maxStay' | translate: { nights: maxNights } }}
+    </p>
+  }
+</form>

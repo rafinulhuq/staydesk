@@ -1,0 +1,47 @@
+<section class="hero">
+  <h1>{{ 'home.title' | translate }}</h1>
+  <div class="hero-form">
+    <sd-stay-search-form (searched)="search($event)" />
+  </div>
+</section>
+
+<section class="featured">
+  <h2>{{ 'home.featured' | translate }}</h2>
+  @switch (state()) {
+    @case ('loading') {
+      <p>{{ 'common.loading' | translate }}</p>
+    }
+    @case ('error') {
+      <p class="state-error" role="alert">
+        {{ 'home.loadFailed' | translate }}
+        <button mat-button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+      </p>
+    }
+    @default {
+      @if (properties().length === 0) {
+        <p>{{ 'home.empty' | translate }}</p>
+      } @else {
+        <ul class="cards">
+          @for (property of properties(); track property.id) {
+            <li>
+              <mat-card appearance="outlined">
+                @if (property.imageUrl) {
+                  <img mat-card-image [src]="property.imageUrl" alt="" loading="lazy" />
+                }
+                <mat-card-header>
+                  <mat-card-title>
+                    <a [routerLink]="['/properties', property.id]">{{ property.name }}</a>
+                  </mat-card-title>
+                  <mat-card-subtitle>{{ property.city }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p>{{ property.address }}</p>
+                </mat-card-content>
+              </mat-card>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</section>

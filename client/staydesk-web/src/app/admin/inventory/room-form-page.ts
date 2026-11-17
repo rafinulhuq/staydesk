@@ -7,7 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { applyServerErrors, problemCode } from '../../shared/server-errors';
-import { Amenity, RoomDetail, RoomType, roomTypes } from './inventory.models';
+import { Amenity, RoomDetail, RoomType, roomTypes } from '../../shared/inventory.models';
 import { InventoryService } from './inventory.service';
 
 // Create (/admin/rooms/new?propertyId=…) and edit (/admin/rooms/:id) share this page.

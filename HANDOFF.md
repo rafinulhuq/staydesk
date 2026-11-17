@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 19:10 +06
+**Last updated:** 2026-11-17 20:20 +06
 
 ## Where things stand
 
-- **Phase:** 3c done (`GET /rooms/search`). **Next: 3d**: home, search, property and room pages (Angular), including the search filter ↔ URL sync test (SRS §9).
+- **Phase:** 3d done (home, search, property and room pages; `GET /rooms/{id}/availability`). **Next: 3e**: price rules admin page (`/admin/pricing`), which needs the `/price-rules` CRUD API (PRICE-2, PRICE-7, PRICE-8).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037.
@@ -48,6 +48,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Application services use `IStayDeskDbContext` (D8). Admin queries must call `IgnoreQueryFilters()` to see inactive rows; public room queries also need the property filter (`db.Properties.Any(...)`), because Room has no navigation to Property.
 - `docker compose up --wait` does not wait for the API (no healthcheck, T-035); poll `/health` before smoke tests.
 - Visual checks: run the API (`docker compose up -d api`) and `npx ng serve` **on the host** (`flatpak-spawn --host --directory=client/staydesk-web sh -c '…'`, Node is in `~/.nvm`), then `firefox --headless --no-remote --profile "$(mktemp -d)" --window-size=360,740 --screenshot /tmp/x.png http://localhost:4200/...` on the host and copy the PNG back with `flatpak-spawn --host cat`. Flatpak Chrome can't write to host `/tmp`.
+- Pages that load data after first paint: Firefox `--screenshot` fires before the API calls finish and shows "Loading". Use the Chrome CDP route below with a short wait instead.
 - Logged-in visual checks: start `flatpak run com.google.Chrome --headless=new --remote-debugging-port=9222 --user-data-dir=<dir>` on the host and drive it with a small Node script over CDP (Node 24 has a global `WebSocket`; `Page.captureScreenshot` returns base64, so no file-permission issue). Stopping the background task doesn't kill Chrome: find it with `ss -ltnp | grep 9222` and `kill <pid>`.
 - Every full page load calls `/auth/refresh`, which counts against the 10/min auth limit (T-042). Scripted checks with many reloads hit 429 within a minute; prefer in-app clicks over `Page.navigate`.
 - esbuild bundles a library file as one module: if anything in the first-load code imports from a file (e.g. `@angular/forms`), every part of it used anywhere lands in the initial chunk. Check `ng build --stats-json` (`dist/staydesk-web/browser-stats.json`) before raising the budget.

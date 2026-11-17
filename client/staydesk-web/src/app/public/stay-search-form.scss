@@ -1,0 +1,30 @@
+form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 calc(var(--sd-space) * 2);
+}
+
+.city {
+  flex: 2 1 200px;
+}
+
+.dates {
+  flex: 3 1 260px;
+}
+
+.guests {
+  flex: 1 1 96px;
+}
+
+// Lines up with the inputs, not with their hint area below.
+button {
+  height: 56px;
+  flex: 0 0 auto;
+}
+
+.form-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--mat-sys-error);
+}

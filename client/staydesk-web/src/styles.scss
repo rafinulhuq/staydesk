@@ -52,3 +52,9 @@ body {
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-large);
 }
+
+// Room page calendar (SRCH-5). Global because the calendar cells live inside Material's
+// component, which a component stylesheet can't reach.
+.sd-booked-date .mat-calendar-body-cell-content {
+  text-decoration: line-through;
+}

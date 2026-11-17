@@ -1,4 +1,4 @@
-// Mirrors the API contracts in StayDesk.Application (Properties/, Rooms/).
+// Mirrors the API contracts in StayDesk.Application (Properties/, Rooms/). Admin and public pages share them.
 export type RoomType = 'Single' | 'Double' | 'Twin' | 'Suite' | 'Apartment';
 
 export const roomTypes: readonly RoomType[] = ['Single', 'Double', 'Twin', 'Suite', 'Apartment'];

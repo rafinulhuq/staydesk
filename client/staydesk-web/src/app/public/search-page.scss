@@ -1,0 +1,128 @@
+.search-bar {
+  padding-block: calc(var(--sd-space) * 3) var(--sd-space);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: calc(var(--sd-space) * 3);
+  align-items: start;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--sd-space) * 2);
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+  }
+
+  fieldset {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-bottom: var(--sd-space);
+    font: var(--mat-sys-label-large);
+  }
+}
+
+.results-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--sd-space) * 2);
+  margin-bottom: calc(var(--sd-space) * 2);
+}
+
+.count {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+}
+
+.sort {
+  min-width: 220px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: calc(var(--sd-space) * 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  mat-card {
+    height: 100%;
+  }
+
+  img {
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  mat-card-content p {
+    margin: var(--sd-space) 0 0;
+  }
+
+  mat-card-footer {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sd-space);
+    margin-top: auto;
+    padding: calc(var(--sd-space) * 2);
+  }
+}
+
+.amenities {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.total {
+  font: var(--mat-sys-title-large);
+  color: var(--mat-sys-primary);
+}
+
+.nights {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--sd-space) * 2);
+  padding-block: calc(var(--sd-space) * 3);
+}
+
+.state {
+  padding-block: calc(var(--sd-space) * 2);
+}
+
+.state-error {
+  color: var(--mat-sys-error);
+}
+
+// SRS §7: public pages work at 360 px; the filters move above the results.
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sort {
+    min-width: 0;
+    flex: 1;
+  }
+}

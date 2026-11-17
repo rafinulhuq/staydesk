@@ -1,0 +1,57 @@
+// Full-bleed band in the primary blue; the form sits on a light surface for contrast.
+.hero {
+  margin-inline: calc(var(--sd-space) * -2);
+  padding: calc(var(--sd-space) * 5) calc(var(--sd-space) * 2);
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+
+  h1 {
+    max-width: 960px;
+    margin: 0 auto calc(var(--sd-space) * 3);
+    font: var(--mat-sys-headline-medium);
+  }
+}
+
+.hero-form {
+  max-width: 960px;
+  margin-inline: auto;
+  padding: calc(var(--sd-space) * 2) calc(var(--sd-space) * 2) 0;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.featured {
+  max-width: 960px;
+  margin: calc(var(--sd-space) * 4) auto;
+
+  h2 {
+    font: var(--mat-sys-title-large);
+  }
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: calc(var(--sd-space) * 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  mat-card {
+    height: 100%;
+  }
+
+  img {
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+.state-error {
+  color: var(--mat-sys-error);
+}
