@@ -2,14 +2,14 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 21:30 +06
+**Last updated:** 2026-11-17 23:00 +06
 
 ## Where things stand
 
-- **Phase:** 3e done, so Phase 3 (search and pricing) is complete. **Next: 4a**: Booking entity status machine with unit tests (BOOK-3, BOOK-4), plus the demo bookings in the seeder (T-022).
+- **Phase:** 4a done (Booking status machine, demo bookings). **Next: 4b**: `POST /bookings` with the room row lock, exclusion constraint mapping to 409 and `Idempotency-Key` (BOOK-1, BOOK-2, BOOK-8), plus the concurrent double-booking integration test (NFR-5).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
-- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037.
+- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051.
 - **Interview notes:** `notes/interview-prep.md` (git-ignored, local only). Append 2–3 talking points there at the end of every sub-feature.
 
 ## Files and what each one is for
@@ -52,6 +52,8 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Logged-in visual checks: start `flatpak run com.google.Chrome --headless=new --remote-debugging-port=9222 --user-data-dir=<dir>` on the host and drive it with a small Node script over CDP (Node 24 has a global `WebSocket`; `Page.captureScreenshot` returns base64, so no file-permission issue). Stopping the background task doesn't kill Chrome: find it with `ss -ltnp | grep 9222` and `kill <pid>`.
 - Every full page load calls `/auth/refresh`, which counts against the 10/min auth limit (T-042). Scripted checks with many reloads hit 429 within a minute; prefer in-app clicks over `Page.navigate`.
 - esbuild bundles a library file as one module: if anything in the first-load code imports from a file (e.g. `@angular/forms`), every part of it used anywhere lands in the initial chunk. Check `ng build --stats-json` (`dist/staydesk-web/browser-stats.json`) before raising the budget.
+- MSBuild skips a project whose source is older than its DLL. Restoring a file with `mv x.bak x` after a build keeps the old (wrong) DLL; `touch` the file first.
+- Npgsql writes only UTC `DateTimeOffset` to `timestamptz`; convert local instants with `ToUniversalTime()`.
 - Never `pkill -f "<pattern>"` through `flatpak-spawn`: the pattern matches the spawn command itself and kills the agent shell. Use `pgrep -af` to find the PID, then `kill <pid>`.
 - Angular 22: `CanMatchFn` takes a third argument (`currentSnapshot`); test helpers must pass it. Material colour tweaks go through `mat.*-overrides` mixins; the toolbar passes its text colour to text buttons, so use `mat.toolbar-overrides`.
 - Angular reactive forms: a server error set with `setErrors` is cleared by the next validation run (value change or first render). Component tests must render before submitting.
@@ -65,5 +67,5 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Next steps
 
-1. Owner decides T-004/T-005 whenever.
-2. Phase 3c: list the requirement IDs (SRCH-1..4, NFR-6) and the files to touch. Reuse `StayDatesValidator` (`IStayDates`) and the "check-in not before today at the property" check in `PricingService`; load all candidate rooms' rules in one query, not per room.
+1. Owner decides T-004/T-005/T-050/T-051 whenever.
+2. Phase 4b: list the requirement IDs (BOOK-1, BOOK-2, BOOK-8, NFR-5) and the files to touch. Reuse `Booking.FormatReference` and the reference sequence the seeder already reads; map `23P01` to 409 `room_unavailable`.

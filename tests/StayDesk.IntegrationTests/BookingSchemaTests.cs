@@ -7,7 +7,7 @@ using StayDesk.Infrastructure.Identity;
 
 namespace StayDesk.IntegrationTests;
 
-// BOOK-2 database safety net and the price snapshot column (PRICE-5).
+// BOOK-2 database safety net, the price snapshot column (PRICE-5) and the concurrency token (BOOK-4).
 public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 16, 12, 0, 0, TimeSpan.Zero);
@@ -58,6 +58,31 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
         Assert.Equal(new DateOnly(2026, 12, 18), loaded.PriceBreakdown[0].Date);
         Assert.Equal("Weekend", loaded.PriceBreakdown[1].Rules.Single().Name);
         Assert.Equal(240.00m, loaded.TotalPrice);
+    }
+
+    [Fact]
+    public async Task Two_status_changes_from_the_same_version_cannot_both_be_saved()
+    {
+        var (room, guest) = await SeedRoomAndGuest();
+        var booking = NewBooking(room, guest, new(2026, 12, 20), new(2026, 12, 22));
+        await using (var db = fixture.CreateContext())
+        {
+            db.Bookings.Add(booking);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using var payment = fixture.CreateContext();
+        await using var expiry = fixture.CreateContext();
+        var paid = await payment.Bookings.SingleAsync(b => b.Id == booking.Id, Ct);
+        var expired = await expiry.Bookings.SingleAsync(b => b.Id == booking.Id, Ct);
+
+        paid.Confirm(Now.AddMinutes(14));
+        await payment.SaveChangesAsync(Ct);
+        expired.Cancel(Now.AddMinutes(15));
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => expiry.SaveChangesAsync(Ct));
+        await using var read = fixture.CreateContext();
+        Assert.Equal(BookingStatus.Confirmed, (await read.Bookings.SingleAsync(b => b.Id == booking.Id, Ct)).Status);
     }
 
     private async Task<(Room Room, User Guest)> SeedRoomAndGuest()

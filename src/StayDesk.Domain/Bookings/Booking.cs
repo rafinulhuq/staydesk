@@ -90,4 +90,75 @@ public class Booking
         Status = BookingStatus.Pending;
         ExpiresAt = createdAt + PendingHold;
     }
+
+    // BOOK-1: the number comes from a database sequence; the year is the creation year in UTC.
+    public static string FormatReference(int year, long number) => $"SD-{year}-{number:D6}";
+
+    // BOOK-3/4 transitions. `today` is the calendar date at the property (Property.TodayAt),
+    // because check-in and no-show windows are local dates, not UTC instants. The SRS calls
+    // these CheckIn/CheckOut, but those names are taken by the stay dates.
+
+    // Payment. An expired hold can't be paid, even if no one has marked it Cancelled yet.
+    public void Confirm(DateTimeOffset now)
+    {
+        EnsureStatus("confirmed", BookingStatus.Pending);
+        if (now >= ExpiresAt)
+        {
+            throw new BookingExpiredException(Reference);
+        }
+
+        Status = BookingStatus.Confirmed;
+        ConfirmedAt = now;
+    }
+
+    public void MarkCheckedIn(DateOnly today, DateTimeOffset now)
+    {
+        EnsureStatus("checked in", BookingStatus.Confirmed);
+        if (today < CheckIn || today >= CheckOut)
+        {
+            throw new InvalidStatusTransitionException(
+                $"Booking {Reference} can be checked in from {CheckIn:yyyy-MM-dd} until {CheckOut.AddDays(-1):yyyy-MM-dd}.");
+        }
+
+        Status = BookingStatus.CheckedIn;
+        CheckedInAt = now;
+    }
+
+    // An early departure keeps the full stored price, so the price is not touched here.
+    public void MarkCheckedOut(DateTimeOffset now)
+    {
+        EnsureStatus("checked out", BookingStatus.CheckedIn);
+        Status = BookingStatus.CheckedOut;
+        CheckedOutAt = now;
+    }
+
+    // The fee and refund (BOOK-5) are added in 4c, together with the cancellation quote.
+    public void Cancel(DateTimeOffset now)
+    {
+        EnsureStatus("cancelled", BookingStatus.Pending, BookingStatus.Confirmed);
+        Status = BookingStatus.Cancelled;
+        CancelledAt = now;
+    }
+
+    // BOOK-5: a no-show is charged the first night of the stored snapshot.
+    public void MarkNoShow(DateOnly today)
+    {
+        EnsureStatus("marked as no-show", BookingStatus.Confirmed);
+        if (today <= CheckIn)
+        {
+            throw new InvalidStatusTransitionException(
+                $"Booking {Reference} can be marked as no-show from {CheckIn.AddDays(1):yyyy-MM-dd}.");
+        }
+
+        Status = BookingStatus.NoShow;
+        CancellationFee = PriceBreakdown[0].Price;
+    }
+
+    private void EnsureStatus(string action, params BookingStatus[] allowed)
+    {
+        if (!allowed.Contains(Status))
+        {
+            throw new InvalidStatusTransitionException($"A {Status} booking can't be {action}.");
+        }
+    }
 }

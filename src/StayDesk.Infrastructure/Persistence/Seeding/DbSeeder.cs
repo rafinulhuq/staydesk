@@ -3,16 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StayDesk.Application.Auth;
+using StayDesk.Domain.Bookings;
 using StayDesk.Domain.Pricing;
 using StayDesk.Domain.Properties;
 using StayDesk.Domain.Rooms;
 using StayDesk.Infrastructure.Identity;
+using StayDesk.Infrastructure.Persistence.Configurations;
 
 namespace StayDesk.Infrastructure.Persistence.Seeding;
 
 // Idempotent: every step checks what already exists, so running it on each startup is safe.
-// Bookings are not seeded yet. They need the pricing engine (3a) and the status machine (4a)
-// to produce real price snapshots and statuses.
 public class DbSeeder(
     StayDeskDbContext db,
     UserManager<User> users,
@@ -26,6 +26,7 @@ public class DbSeeder(
         await SeedRolesAsync();
         await SeedDemoUsersAsync();
         await SeedInventoryAsync(ct);
+        await SeedDemoBookingsAsync(ct);
     }
 
     private async Task SeedRolesAsync()
@@ -47,11 +48,12 @@ public class DbSeeder(
         await EnsureDemoUserAsync("guest@example.com", "Lena", "Schmidt", Required(o.GuestPassword, nameof(o.GuestPassword)), Roles.Guest);
     }
 
-    private async Task EnsureDemoUserAsync(string email, string firstName, string lastName, string password, params string[] userRoles)
+    // A null password creates an account that can't log in, like a walk-in guest (BOOK-9).
+    private async Task<User> EnsureDemoUserAsync(string email, string firstName, string lastName, string? password, params string[] userRoles)
     {
-        if (await users.FindByEmailAsync(email) is not null)
+        if (await users.FindByEmailAsync(email) is { } existing)
         {
-            return;
+            return existing;
         }
 
         var user = new User
@@ -64,9 +66,10 @@ public class DbSeeder(
             CreatedAt = time.GetUtcNow(),
             IsDemo = true,
         };
-        Check(await users.CreateAsync(user, password), $"create demo user {email}");
+        Check(password is null ? await users.CreateAsync(user) : await users.CreateAsync(user, password), $"create demo user {email}");
         Check(await users.AddToRolesAsync(user, userRoles), $"assign roles to {email}");
         logger.LogInformation("Seeded demo user {Email}", email);
+        return user;
     }
 
     private async Task SeedInventoryAsync(CancellationToken ct)
@@ -154,6 +157,130 @@ public class DbSeeder(
         await db.SaveChangesAsync(ct);
         logger.LogInformation("Seeded 3 properties, 21 rooms, 10 amenities and 8 price rules");
     }
+
+    // SRS §5: about 40 bookings across the last and next 30 days. Each one is priced by the
+    // pricing engine as of its creation date and moved through the status machine, so the
+    // demo data follows the same rules as real bookings.
+    private async Task SeedDemoBookingsAsync(CancellationToken ct)
+    {
+        if (await db.Bookings.AnyAsync(ct))
+        {
+            return;
+        }
+
+        List<User> guests = [await users.FindByEmailAsync("guest@example.com") ?? throw new InvalidOperationException("Seed the demo guest first.")];
+        foreach (var (first, last, email) in DemoGuests)
+        {
+            guests.Add(await EnsureDemoUserAsync(email, first, last, null, Roles.Guest));
+        }
+
+        var properties = await db.Properties.ToDictionaryAsync(p => p.Id, ct);
+        // Sorted by name, not id: v7 ids created in the same millisecond have no fixed order,
+        // and the same order is what makes the layout repeatable.
+        var rooms = (await db.Rooms.Where(r => properties.Keys.Contains(r.PropertyId)).ToListAsync(ct))
+            .OrderBy(r => properties[r.PropertyId].Name).ThenBy(r => r.RoomNumber).ToList();
+        var rules = (await db.PriceRules.ToListAsync(ct)).ToLookup(r => r.PropertyId);
+        var now = time.GetUtcNow();
+
+        // A fixed seed gives the same layout on every reset, relative to the day it runs.
+        var random = new Random(2026);
+        var count = 0;
+        for (var i = 0; i < rooms.Count; i++)
+        {
+            var room = rooms[i];
+            var property = properties[room.PropertyId];
+            var today = property.TodayAt(now);
+
+            // Every third room has a guest in house or arriving today, the others a stay in the
+            // past month; every room has one upcoming stay. The windows never overlap per room
+            // (BOOK-2 exclusion constraint).
+            List<(DateOnly CheckIn, DateOnly CheckOut)> stays = [];
+            if (i % 3 == 0)
+            {
+                var arrival = today.AddDays(-random.Next(0, 3));
+                stays.Add((arrival, today.AddDays(random.Next(1, 4))));
+            }
+            else
+            {
+                var arrival = today.AddDays(-random.Next(10, 31));
+                stays.Add((arrival, arrival.AddDays(random.Next(1, 5))));
+            }
+            var upcoming = today.AddDays(random.Next(4, 27));
+            stays.Add((upcoming, upcoming.AddDays(random.Next(1, 5))));
+
+            foreach (var (checkIn, checkOut) in stays)
+            {
+                var guest = guests[random.Next(guests.Count)];
+                var createdAt = Earlier(
+                    LocalInstant(property, checkIn.AddDays(-random.Next(1, 22)), new TimeOnly(random.Next(8, 22), 0)),
+                    now.AddHours(-random.Next(1, 48)));
+                var quote = PricingEngine.Quote(room, rules[property.Id], new Stay(checkIn, checkOut, property.TodayAt(createdAt)));
+                var number = await db.Database.SqlQueryRaw<long>(NextReferenceSql).SingleAsync(ct);
+
+                var booking = new Booking(
+                    Booking.FormatReference(createdAt.UtcDateTime.Year, number), room.Id, guest.Id, checkIn, checkOut,
+                    random.Next(1, room.MaxGuests + 1), $"{guest.FirstName} {guest.LastName}",
+                    guest.Email!, // every demo user is created with an email
+                    null, null, [.. quote.Nights], null, createdAt);
+                MoveToDemoStatus(booking, property, today, random.Next(10), random);
+                db.Bookings.Add(booking);
+                count++;
+            }
+        }
+
+        await db.SaveChangesAsync(ct);
+        logger.LogInformation("Seeded {Count} demo bookings", count);
+    }
+
+    // Past stays end CheckedOut (sometimes NoShow), stays in progress are CheckedIn, arrivals
+    // today and later are Confirmed. One in ten is a hold that was never paid and expired.
+    private static void MoveToDemoStatus(Booking booking, Property property, DateOnly today, int roll, Random random)
+    {
+        if (roll == 0)
+        {
+            booking.Cancel(booking.CreatedAt + Booking.PendingHold);
+            return;
+        }
+
+        booking.Confirm(booking.CreatedAt + TimeSpan.FromMinutes(random.Next(1, 10)));
+        if (booking.CheckIn >= today)
+        {
+            return;
+        }
+
+        if (booking.CheckOut < today && roll == 1)
+        {
+            booking.MarkNoShow(booking.CheckIn.AddDays(1));
+            return;
+        }
+
+        booking.MarkCheckedIn(booking.CheckIn, LocalInstant(property, booking.CheckIn, property.CheckInTime).AddMinutes(random.Next(0, 300)));
+        if (booking.CheckOut < today)
+        {
+            booking.MarkCheckedOut(LocalInstant(property, booking.CheckOut, property.CheckOutTime).AddMinutes(-random.Next(0, 120)));
+        }
+    }
+
+    private const string NextReferenceSql = "SELECT nextval('" + BookingConfiguration.ReferenceSequence + "') AS \"Value\"";
+
+    private static readonly (string First, string Last, string Email)[] DemoGuests =
+    [
+        ("Max", "Hoffmann", "max.hoffmann@example.com"),
+        ("Sophie", "Wagner", "sophie.wagner@example.com"),
+        ("Felix", "Krüger", "felix.krueger@example.com"),
+        ("Anna", "Neumann", "anna.neumann@example.com"),
+        ("Paul", "Zimmermann", "paul.zimmermann@example.com"),
+        ("Marie", "Schulz", "marie.schulz@example.com"),
+    ];
+
+    private static DateTimeOffset LocalInstant(Property property, DateOnly date, TimeOnly time)
+    {
+        var local = date.ToDateTime(time);
+        // Npgsql only writes UTC offsets to timestamptz.
+        return new DateTimeOffset(local, TimeZoneInfo.FindSystemTimeZoneById(property.TimeZone).GetUtcOffset(local)).ToUniversalTime();
+    }
+
+    private static DateTimeOffset Earlier(DateTimeOffset a, DateTimeOffset b) => a < b ? a : b;
 
     private static PriceRule Rule(
         Property property, string name, PriceRuleType type, decimal percent,

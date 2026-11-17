@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StayDesk.Application.Errors;
+using StayDesk.Domain.Bookings;
 
 namespace StayDesk.Api.Errors;
 
@@ -26,6 +27,18 @@ public sealed class ProblemExceptionHandler(IProblemDetailsService problemDetail
                 },
                 Detail = known.Message,
                 Extensions = { ["code"] = known.Code },
+            },
+            InvalidStatusTransitionException transition => new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Detail = transition.Message,
+                Extensions = { ["code"] = "invalid_status_transition" },
+            },
+            BookingExpiredException expired => new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Detail = expired.Message,
+                Extensions = { ["code"] = "booking_expired" },
             },
             // Raised when a row's xmin no longer matches the version the client edited.
             DbUpdateConcurrencyException => new ProblemDetails

@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StayDesk.Api.Middleware;
+using StayDesk.Domain.Bookings;
 using StayDesk.Infrastructure.Identity;
 using StayDesk.Infrastructure.Persistence;
 using StayDesk.Infrastructure.Persistence.Seeding;
 
 namespace StayDesk.IntegrationTests;
 
-// Startup wiring: health check (NFR-7), correlation IDs (NFR-8), demo seed (AUTH-4, PROP-4), CORS (NFR-3).
+// Startup wiring: health check (NFR-7), correlation IDs (NFR-8), demo seed (AUTH-4, PROP-4, SRS §5), CORS (NFR-3).
 public class StartupTests(ApiFixture api) : IClassFixture<ApiFixture>
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -69,6 +70,29 @@ public class StartupTests(ApiFixture api) : IClassFixture<ApiFixture>
     }
 
     [Fact]
+    public async Task Demo_bookings_span_the_last_and_next_30_days_in_statuses_that_fit_their_dates()
+    {
+        await using var db = api.Database.CreateContext();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var bookings = await db.Bookings.AsNoTracking().ToListAsync(Ct);
+
+        Assert.InRange(bookings.Count, 30, 50);
+        Assert.All(bookings, b =>
+        {
+            // ±1 day: the seeder uses the date in Berlin, this test the UTC date.
+            Assert.InRange(b.CheckIn, today.AddDays(-31), today.AddDays(30));
+            Assert.Matches(@"^SD-\d{4}-\d{6}$", b.Reference);
+            Assert.Equal(b.PriceBreakdown.Sum(n => n.Price), b.TotalPrice);
+        });
+        Assert.All(bookings.Where(b => b.CheckOut < today.AddDays(-1)), b =>
+            Assert.Contains(b.Status, new[] { BookingStatus.CheckedOut, BookingStatus.NoShow, BookingStatus.Cancelled }));
+        Assert.All(bookings.Where(b => b.CheckIn > today.AddDays(1)), b =>
+            Assert.Contains(b.Status, new[] { BookingStatus.Confirmed, BookingStatus.Cancelled }));
+        Assert.Contains(bookings, b => b.Status == BookingStatus.CheckedIn);
+    }
+
+    [Fact]
     public async Task Demo_admin_holds_admin_and_staff_roles_and_is_flagged_as_demo()
     {
         await using var scope = api.Factory.Services.CreateAsyncScope();
@@ -97,12 +121,13 @@ public class StartupTests(ApiFixture api) : IClassFixture<ApiFixture>
         Assert.Equal(counts, await CountsAsync(after));
     }
 
-    private static async Task<(int, int, int, int, int)> CountsAsync(StayDeskDbContext db) => (
+    private static async Task<(int, int, int, int, int, int)> CountsAsync(StayDeskDbContext db) => (
         await db.Properties.CountAsync(Ct),
         await db.Rooms.CountAsync(Ct),
         await db.Amenities.CountAsync(Ct),
         await db.PriceRules.CountAsync(Ct),
-        await db.Users.CountAsync(Ct));
+        await db.Users.CountAsync(Ct),
+        await db.Bookings.CountAsync(Ct));
 
     [Theory]
     [InlineData("http://localhost:4200", true)]
