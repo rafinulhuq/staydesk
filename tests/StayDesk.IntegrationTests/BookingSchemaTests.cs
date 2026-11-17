@@ -79,7 +79,7 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
 
         paid.Confirm(Now.AddMinutes(14));
         await payment.SaveChangesAsync(Ct);
-        expired.Cancel(Now.AddMinutes(15));
+        expired.Expire(Now.AddMinutes(15));
 
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => expiry.SaveChangesAsync(Ct));
         await using var read = fixture.CreateContext();

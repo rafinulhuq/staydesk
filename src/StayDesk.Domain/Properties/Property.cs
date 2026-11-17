@@ -62,6 +62,14 @@ public class Property
 
     public void Reactivate() => IsActive = true;
 
+    // A wall-clock time at the property as a UTC instant, e.g. the check-in instant of BOOK-5
+    // (arrival date + CheckInTime). The zone's offset on that date handles summer time.
+    public DateTimeOffset InstantAt(DateOnly date, TimeOnly time)
+    {
+        var local = date.ToDateTime(time);
+        return new DateTimeOffset(local, TimeZoneInfo.FindSystemTimeZoneById(TimeZone).GetUtcOffset(local)).ToUniversalTime();
+    }
+
     // The calendar date at the property, which is what "today" means for bookings there.
     public DateOnly TodayAt(DateTimeOffset now) =>
         DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById(TimeZone)).DateTime);

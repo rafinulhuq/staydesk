@@ -29,6 +29,19 @@ public sealed class BookingsController(BookingService bookings) : ControllerBase
     public async Task<BookingDetail> Get(Guid id, CancellationToken ct) =>
         await bookings.GetAsync(id, CurrentUserId, User.IsInRole(Roles.Staff), ct);
 
+    // Owner only (SRS §6); anyone else gets 404.
+    [HttpPost("{id:guid}/pay")]
+    public async Task<BookingDetail> Pay(Guid id, CancellationToken ct) =>
+        await bookings.PayAsync(id, CurrentUserId, ct);
+
+    [HttpGet("{id:guid}/cancellation-quote")]
+    public async Task<CancellationQuote> CancellationQuote(Guid id, CancellationToken ct) =>
+        await bookings.GetCancellationQuoteAsync(id, CurrentUserId, User.IsInRole(Roles.Staff), ct);
+
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<BookingDetail> Cancel(Guid id, CancelBookingRequest request, CancellationToken ct) =>
+        await bookings.CancelAsync(id, CurrentUserId, User.IsInRole(Roles.Staff), request, ct);
+
     // [Authorize] guarantees an authenticated principal, and every access token is issued with `sub`.
     private Guid CurrentUserId => Guid.Parse(User.FindFirstValue("sub")!);
 }

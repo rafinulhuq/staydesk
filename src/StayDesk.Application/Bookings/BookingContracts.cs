@@ -35,12 +35,19 @@ public sealed record BookingDetail(
     IReadOnlyList<QuoteNight> PriceBreakdown,
     decimal? CancellationFee,
     decimal? RefundAmount,
+    bool FeeWaived,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ExpiresAt,
     DateTimeOffset? ConfirmedAt,
     DateTimeOffset? CheckedInAt,
     DateTimeOffset? CheckedOutAt,
     DateTimeOffset? CancelledAt);
+
+// BOOK-5: waiveFee is for Staff and Admin only.
+public sealed record CancelBookingRequest(bool WaiveFee);
+
+// BOOK-5 preview shown before the guest confirms the cancellation.
+public sealed record CancellationQuote(decimal AmountPaid, decimal Fee, decimal Refund, DateTimeOffset FreeUntil);
 
 // Created is false when an Idempotency-Key retry returned the original booking (BOOK-8).
 public sealed record BookingCreation(BookingDetail Booking, bool Created);

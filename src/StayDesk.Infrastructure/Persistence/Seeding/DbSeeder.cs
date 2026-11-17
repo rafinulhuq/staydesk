@@ -211,7 +211,7 @@ public class DbSeeder(
             {
                 var guest = guests[random.Next(guests.Count)];
                 var createdAt = Earlier(
-                    LocalInstant(property, checkIn.AddDays(-random.Next(1, 22)), new TimeOnly(random.Next(8, 22), 0)),
+                    property.InstantAt(checkIn.AddDays(-random.Next(1, 22)), new TimeOnly(random.Next(8, 22), 0)),
                     now.AddHours(-random.Next(1, 48)));
                 var quote = PricingEngine.Quote(room, rules[property.Id], new Stay(checkIn, checkOut, property.TodayAt(createdAt)));
                 var number = await db.NextBookingNumberAsync(ct);
@@ -237,7 +237,7 @@ public class DbSeeder(
     {
         if (roll == 0)
         {
-            booking.Cancel(booking.CreatedAt + Booking.PendingHold);
+            booking.Expire(booking.CreatedAt + Booking.PendingHold);
             return;
         }
 
@@ -253,10 +253,10 @@ public class DbSeeder(
             return;
         }
 
-        booking.MarkCheckedIn(booking.CheckIn, LocalInstant(property, booking.CheckIn, property.CheckInTime).AddMinutes(random.Next(0, 300)));
+        booking.MarkCheckedIn(booking.CheckIn, property.InstantAt(booking.CheckIn, property.CheckInTime).AddMinutes(random.Next(0, 300)));
         if (booking.CheckOut < today)
         {
-            booking.MarkCheckedOut(LocalInstant(property, booking.CheckOut, property.CheckOutTime).AddMinutes(-random.Next(0, 120)));
+            booking.MarkCheckedOut(property.InstantAt(booking.CheckOut, property.CheckOutTime).AddMinutes(-random.Next(0, 120)));
         }
     }
 
@@ -269,13 +269,6 @@ public class DbSeeder(
         ("Paul", "Zimmermann", "paul.zimmermann@example.com"),
         ("Marie", "Schulz", "marie.schulz@example.com"),
     ];
-
-    private static DateTimeOffset LocalInstant(Property property, DateOnly date, TimeOnly time)
-    {
-        var local = date.ToDateTime(time);
-        // Npgsql only writes UTC offsets to timestamptz.
-        return new DateTimeOffset(local, TimeZoneInfo.FindSystemTimeZoneById(property.TimeZone).GetUtcOffset(local)).ToUniversalTime();
-    }
 
     private static DateTimeOffset Earlier(DateTimeOffset a, DateTimeOffset b) => a < b ? a : b;
 

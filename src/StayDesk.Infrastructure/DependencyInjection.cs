@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StayDesk.Application.Auth;
+using StayDesk.Application.Bookings;
 using StayDesk.Application.Persistence;
+using StayDesk.Infrastructure.Email;
 using StayDesk.Infrastructure.Identity;
+using StayDesk.Infrastructure.Jobs;
 using StayDesk.Infrastructure.Persistence;
 using StayDesk.Infrastructure.Persistence.Seeding;
 
@@ -49,6 +52,10 @@ public static class DependencyInjection
                 "Jwt:SigningKey must be at least 32 bytes. Use user-secrets or the Jwt__SigningKey environment variable.")
             .ValidateOnStart();
         services.AddScoped<IAuthService, AuthService>();
+
+        services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.Section));
+        services.AddScoped<IBookingEmails, SmtpBookingEmails>();
+        services.AddHostedService<BookingExpiryJob>();
 
         services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.Section));
         services.AddScoped<DbSeeder>();

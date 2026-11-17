@@ -6,13 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 using StayDesk.Application.Auth;
 using StayDesk.Application.Bookings;
 using StayDesk.Domain.Bookings;
+using StayDesk.Domain.Payments;
 using StayDesk.Domain.Properties;
 using StayDesk.Domain.Rooms;
 using StayDesk.Infrastructure.Persistence;
 
 namespace StayDesk.IntegrationTests;
 
-// BOOK-1, BOOK-2, BOOK-6, BOOK-8, PRICE-7 and NFR-5. Each test books its own new room.
+// BOOK-1..3, BOOK-5, BOOK-6, BOOK-8, PRICE-7 and NFR-5. Each test books its own new room.
 public class BookingTests(ApiFixture api) : IClassFixture<ApiFixture>
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -181,6 +182,119 @@ public class BookingTests(ApiFixture api) : IClassFixture<ApiFixture>
         Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.Created));
         Assert.Equal(19, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
         Assert.Equal(1, await CountBookingsAsync(room));
+    }
+
+    [Fact]
+    public async Task Paying_confirms_the_booking_and_records_a_mock_payment()
+    {
+        var guest = await GuestAsync();
+        var booking = await BookAsync(guest);
+
+        var response = await guest.PostAsync($"/api/v1/bookings/{booking.Id}/pay", null, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var paid = (await response.Content.ReadFromJsonAsync<BookingDetail>(ApiFixture.Json, Ct))!;
+        Assert.Equal(BookingStatus.Confirmed, paid.Status);
+        Assert.NotNull(paid.ConfirmedAt);
+        await using var db = api.Database.CreateContext();
+        var payment = await db.Payments.SingleAsync(p => p.BookingId == booking.Id, Ct);
+        Assert.Equal((240.00m, PaymentProvider.Mock, PaymentStatus.Succeeded), (payment.Amount, payment.Provider, payment.Status));
+    }
+
+    [Fact]
+    public async Task Paying_after_the_hold_expired_returns_409_booking_expired()
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+        var hold = await SaveExpiredHoldAsync(room, checkIn, checkIn.AddDays(2));
+
+        var response = await (await GuestAsync()).PostAsync($"/api/v1/bookings/{hold.Id}/pay", null, Ct);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("booking_expired", await CodeAsync(response));
+    }
+
+    [Fact]
+    public async Task Only_the_guest_who_booked_can_pay()
+    {
+        var booking = await BookAsync(await GuestAsync());
+
+        var response = await (await NewGuestAsync()).PostAsync($"/api/v1/bookings/{booking.Id}/pay", null, Ct);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Cancelling_a_paid_booking_two_weeks_ahead_is_free_and_refunds_the_payment()
+    {
+        var guest = await GuestAsync();
+        var booking = await BookAsync(guest);
+        await guest.PostAsync($"/api/v1/bookings/{booking.Id}/pay", null, Ct);
+
+        var quote = await guest.GetFromJsonAsync<CancellationQuote>($"/api/v1/bookings/{booking.Id}/cancellation-quote", ApiFixture.Json, Ct);
+        var response = await guest.PostAsJsonAsync($"/api/v1/bookings/{booking.Id}/cancel", new CancelBookingRequest(false), ApiFixture.Json, Ct);
+
+        Assert.Equal((240.00m, 0m, 240.00m), (quote!.AmountPaid, quote.Fee, quote.Refund));
+        var cancelled = (await response.Content.ReadFromJsonAsync<BookingDetail>(ApiFixture.Json, Ct))!;
+        Assert.Equal((BookingStatus.Cancelled, 0m, 240.00m), (cancelled.Status, cancelled.CancellationFee, cancelled.RefundAmount));
+        await using var db = api.Database.CreateContext();
+        Assert.Equal(PaymentStatus.Refunded, (await db.Payments.SingleAsync(p => p.BookingId == booking.Id, Ct)).Status);
+    }
+
+    [Fact]
+    public async Task A_guest_cannot_waive_the_fee_but_staff_can()
+    {
+        var booking = await BookAsync(await GuestAsync());
+        var staff = await api.CreateClientAsync("staff@example.com", "Staff123");
+
+        var asGuest = await (await GuestAsync()).PostAsJsonAsync($"/api/v1/bookings/{booking.Id}/cancel", new CancelBookingRequest(true), ApiFixture.Json, Ct);
+        var asStaff = await staff.PostAsJsonAsync($"/api/v1/bookings/{booking.Id}/cancel", new CancelBookingRequest(true), ApiFixture.Json, Ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, asGuest.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, asStaff.StatusCode);
+        Assert.True((await asStaff.Content.ReadFromJsonAsync<BookingDetail>(ApiFixture.Json, Ct))!.FeeWaived);
+    }
+
+    [Fact]
+    public async Task A_cancelled_booking_cannot_be_cancelled_again()
+    {
+        var guest = await GuestAsync();
+        var booking = await BookAsync(guest);
+        await guest.PostAsJsonAsync($"/api/v1/bookings/{booking.Id}/cancel", new CancelBookingRequest(false), ApiFixture.Json, Ct);
+
+        var again = await guest.PostAsJsonAsync($"/api/v1/bookings/{booking.Id}/cancel", new CancelBookingRequest(false), ApiFixture.Json, Ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, again.StatusCode);
+        Assert.Equal("invalid_status_transition", await CodeAsync(again));
+    }
+
+    [Fact]
+    public async Task Expiry_run_cancels_holds_past_their_15_minutes_and_leaves_live_ones()
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+        var expired = await SaveExpiredHoldAsync(room, checkIn, checkIn.AddDays(1));
+        var live = await BookAsync(await GuestAsync());
+
+        await using (var scope = api.Factory.Services.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<BookingService>().ExpireHoldsAsync(Ct);
+        }
+
+        await using var db = api.Database.CreateContext();
+        var stored = await db.Bookings.SingleAsync(b => b.Id == expired.Id, Ct);
+        Assert.Equal((BookingStatus.Cancelled, 0m, 0m), (stored.Status, stored.CancellationFee, stored.RefundAmount));
+        Assert.Equal(BookingStatus.Pending, (await db.Bookings.SingleAsync(b => b.Id == live.Id, Ct)).Status);
+    }
+
+    // Two nights in a new room at 120.00, held for the demo guest.
+    private async Task<BookingDetail> BookAsync(HttpClient guest)
+    {
+        var room = await NewRoomAsync();
+        var checkIn = NextMonday();
+        var response = await PostAsync(guest, Request(room, checkIn, checkIn.AddDays(2)), Guid.NewGuid());
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<BookingDetail>(ApiFixture.Json, Ct))!;
     }
 
     private static CreateBookingRequest Request(Room room, DateOnly checkIn, DateOnly checkOut, int guests = 2, decimal? expectedTotal = null) =>

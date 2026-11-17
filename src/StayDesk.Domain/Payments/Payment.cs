@@ -29,4 +29,7 @@ public class Payment
         CreatedAt = createdAt;
         Status = PaymentStatus.Succeeded;
     }
+
+    // The refunded amount is on the booking (RefundAmount); it may be less than Amount.
+    public void MarkRefunded() => Status = PaymentStatus.Refunded;
 }

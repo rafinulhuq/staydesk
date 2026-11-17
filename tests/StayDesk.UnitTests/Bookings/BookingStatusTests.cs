@@ -10,6 +10,8 @@ public class BookingStatusTests
     private static readonly DateOnly CheckOut = new(2026, 12, 13);
     private static readonly DateTimeOffset BeforeExpiry = CreatedAt + TimeSpan.FromMinutes(5);
     private static readonly DateTimeOffset DuringStay = new(2026, 12, 11, 15, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset CheckInInstant = new(2026, 12, 10, 14, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset AfterExpiry = CreatedAt + TimeSpan.FromHours(1);
 
     public enum Action
     {
@@ -18,6 +20,7 @@ public class BookingStatusTests
         CheckOut,
         Cancel,
         NoShow,
+        Expire,
     }
 
     private static Booking Pending() => new(
@@ -51,7 +54,7 @@ public class BookingStatusTests
                 booking.MarkCheckedOut(DuringStay);
                 break;
             case BookingStatus.Cancelled:
-                booking.Cancel(BeforeExpiry);
+                booking.Cancel(BeforeExpiry, CheckInInstant, waiveFee: false);
                 break;
             case BookingStatus.NoShow:
                 booking.Confirm(BeforeExpiry);
@@ -71,15 +74,16 @@ public class BookingStatusTests
             case Action.Confirm: booking.Confirm(BeforeExpiry); break;
             case Action.CheckIn: booking.MarkCheckedIn(dayAfterCheckIn, DuringStay); break;
             case Action.CheckOut: booking.MarkCheckedOut(DuringStay); break;
-            case Action.Cancel: booking.Cancel(BeforeExpiry); break;
+            case Action.Cancel: booking.Cancel(BeforeExpiry, CheckInInstant, waiveFee: false); break;
             case Action.NoShow: booking.MarkNoShow(dayAfterCheckIn); break;
+            case Action.Expire: booking.Expire(AfterExpiry); break;
         }
     }
 
     // BOOK-3, written out as the SRS lists it.
     private static readonly Dictionary<BookingStatus, (Action Action, BookingStatus To)[]> Allowed = new()
     {
-        [BookingStatus.Pending] = [(Action.Confirm, BookingStatus.Confirmed), (Action.Cancel, BookingStatus.Cancelled)],
+        [BookingStatus.Pending] = [(Action.Confirm, BookingStatus.Confirmed), (Action.Cancel, BookingStatus.Cancelled), (Action.Expire, BookingStatus.Cancelled)],
         [BookingStatus.Confirmed] = [(Action.CheckIn, BookingStatus.CheckedIn), (Action.Cancel, BookingStatus.Cancelled), (Action.NoShow, BookingStatus.NoShow)],
         [BookingStatus.CheckedIn] = [(Action.CheckOut, BookingStatus.CheckedOut)],
     };
@@ -136,14 +140,25 @@ public class BookingStatusTests
     }
 
     [Fact]
-    public void Expired_pending_booking_can_still_be_cancelled()
+    public void Expired_hold_is_cancelled_with_no_fee_and_no_refund()
     {
         var booking = Pending();
 
-        booking.Cancel(CreatedAt + TimeSpan.FromHours(1));
+        booking.Expire(AfterExpiry);
 
         Assert.Equal(BookingStatus.Cancelled, booking.Status);
-        Assert.Equal(CreatedAt + TimeSpan.FromHours(1), booking.CancelledAt);
+        Assert.Equal(AfterExpiry, booking.CancelledAt);
+        Assert.Equal(0m, booking.CancellationFee);
+        Assert.Equal(0m, booking.RefundAmount);
+    }
+
+    [Fact]
+    public void A_hold_cannot_expire_before_its_15_minutes_are_up()
+    {
+        var booking = Pending();
+
+        Assert.Throws<InvalidStatusTransitionException>(() => booking.Expire(CreatedAt + Booking.PendingHold - TimeSpan.FromSeconds(1)));
+        Assert.Equal(BookingStatus.Pending, booking.Status);
     }
 
     [Theory]

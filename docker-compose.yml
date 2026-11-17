@@ -34,6 +34,8 @@ services:
       Seed__GuestPassword: ${SEED_GUEST_PASSWORD:-Guest123}
       # Local-only signing key; anyone can read it here, so tokens from this stack are worthless elsewhere.
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-local-dev-only-signing-key-change-me-0123456789}
+      # Booking confirmations (BOOK-7) go to Mailpit; read them at http://localhost:8025.
+      Smtp__Host: mail
     ports:
       - "${API_PORT:-8080}:8080"
 

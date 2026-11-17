@@ -7,6 +7,9 @@ public class Booking
     // BOOK-3: an unpaid booking holds the room for this long.
     public static readonly TimeSpan PendingHold = TimeSpan.FromMinutes(15);
 
+    // BOOK-5: cancelling is free until this long before the check-in instant.
+    public static readonly TimeSpan FreeCancellationNotice = TimeSpan.FromHours(48);
+
     public Guid Id { get; private init; } = Guid.CreateVersion7();
     public string Reference { get; private init; }
     public Guid RoomId { get; private init; }
@@ -132,12 +135,42 @@ public class Booking
         CheckedOutAt = now;
     }
 
-    // The fee and refund (BOOK-5) are added in 4c, together with the cancellation quote.
-    public void Cancel(DateTimeOffset now)
+    // BOOK-5. A Pending booking is unpaid, so it costs nothing. A Confirmed one was paid in
+    // full (online or at the desk); after the free window the first night is kept.
+    public CancellationTerms CancellationTermsAt(DateTimeOffset now, DateTimeOffset checkInInstant, bool waiveFee)
     {
         EnsureStatus("cancelled", BookingStatus.Pending, BookingStatus.Confirmed);
+        var freeUntil = checkInInstant - FreeCancellationNotice;
+        var paid = Status == BookingStatus.Confirmed ? TotalPrice : 0m;
+        var fee = paid > 0 && !waiveFee && now > freeUntil ? PriceBreakdown[0].Price : 0m;
+        return new CancellationTerms(paid, fee, Math.Max(paid - fee, 0m), freeUntil);
+    }
+
+    // waiveFee is recorded even when the fee would have been 0, so the audit shows what staff chose.
+    public void Cancel(DateTimeOffset now, DateTimeOffset checkInInstant, bool waiveFee)
+    {
+        var terms = CancellationTermsAt(now, checkInInstant, waiveFee);
         Status = BookingStatus.Cancelled;
         CancelledAt = now;
+        CancellationFee = terms.Fee;
+        RefundAmount = terms.Refund;
+        FeeWaived = waiveFee;
+    }
+
+    // BOOK-3: an unpaid hold past ExpiresAt is cancelled, by the create transaction (lazily) or
+    // by the expiry job. Nothing was paid, so fee and refund are 0.
+    public void Expire(DateTimeOffset now)
+    {
+        EnsureStatus("expired", BookingStatus.Pending);
+        if (now < ExpiresAt)
+        {
+            throw new InvalidStatusTransitionException($"Booking {Reference} is still held until {ExpiresAt:u}.");
+        }
+
+        Status = BookingStatus.Cancelled;
+        CancelledAt = now;
+        CancellationFee = 0m;
+        RefundAmount = 0m;
     }
 
     // BOOK-5: a no-show is charged the first night of the stored snapshot.
