@@ -1,6 +1,6 @@
 import { Amenity, RoomType } from '../shared/inventory.models';
 
-// Mirrors the API contracts in StayDesk.Application (Paging/, Rooms/, Pricing/).
+// Mirrors the API contracts in StayDesk.Application (Paging/, Rooms/).
 export interface Paged<T> {
   items: T[];
   page: number;
@@ -35,27 +35,6 @@ export interface RoomSearchResult {
   maxGuests: number;
   imageUrl: string | null;
   amenities: Amenity[];
-  total: number;
-}
-
-export interface AppliedRuleSummary {
-  name: string;
-  type: string;
-  percentChange: number;
-}
-
-export interface QuoteNight {
-  date: string;
-  basePrice: number;
-  rules: AppliedRuleSummary[];
-  price: number;
-}
-
-export interface StayQuote {
-  roomId: string;
-  checkIn: string;
-  checkOut: string;
-  nights: QuoteNight[];
   total: number;
 }
 

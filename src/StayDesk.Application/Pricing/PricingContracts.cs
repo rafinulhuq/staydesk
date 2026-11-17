@@ -11,7 +11,7 @@ public interface IStayDates
 
 public sealed record QuoteRequest(Guid RoomId, DateOnly CheckIn, DateOnly CheckOut) : IStayDates;
 
-// The rule as Admin enters it. Phase 3e saves the same shape; here it is only previewed.
+// The rule as Admin enters it: saved by /price-rules, or only previewed by /pricing/preview.
 public sealed record PriceRuleRequest(
     Guid PropertyId,
     Guid? RoomId,
@@ -35,3 +35,15 @@ public sealed record StayQuote(Guid RoomId, DateOnly CheckIn, DateOnly CheckOut,
 
 // PRICE-8: the price today and the price if the draft rule were saved.
 public sealed record PricePreview(StayQuote Current, StayQuote WithRule);
+
+public sealed record PriceRuleDetail(
+    Guid Id,
+    Guid PropertyId,
+    Guid? RoomId,
+    string Name,
+    PriceRuleType Type,
+    decimal PercentChange,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    int? MinNights,
+    int? DaysBeforeCheckIn);

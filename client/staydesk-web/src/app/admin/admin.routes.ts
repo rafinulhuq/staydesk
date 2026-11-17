@@ -6,6 +6,9 @@ import { PropertiesPage } from './inventory/properties-page';
 import { PropertyFormPage } from './inventory/property-form-page';
 import { RoomFormPage } from './inventory/room-form-page';
 import { RoomsPage } from './inventory/rooms-page';
+import { PriceRuleFormPage } from './pricing/price-rule-form-page';
+import { PriceRulesPage } from './pricing/price-rules-page';
+import { provideLocalizedDateAdapter } from '../shared/date-adapter';
 
 export const adminRoutes: Routes = [
   {
@@ -13,10 +16,11 @@ export const adminRoutes: Routes = [
     component: AdminLayout,
     children: [
       { path: '', component: DashboardPage },
-      // Inventory is Admin-only (SRS §7); the area itself lets Staff in.
+      // Inventory and pricing are Admin-only (SRS §7); the area itself lets Staff in.
       {
         path: '',
         canMatch: [roleGuard('Admin')],
+        providers: [provideLocalizedDateAdapter()],
         children: [
           { path: 'properties', component: PropertiesPage },
           { path: 'properties/new', component: PropertyFormPage },
@@ -24,6 +28,9 @@ export const adminRoutes: Routes = [
           { path: 'rooms', component: RoomsPage },
           { path: 'rooms/new', component: RoomFormPage },
           { path: 'rooms/:id', component: RoomFormPage },
+          { path: 'pricing', component: PriceRulesPage },
+          { path: 'pricing/new', component: PriceRuleFormPage },
+          { path: 'pricing/:id', component: PriceRuleFormPage },
         ],
       },
     ],

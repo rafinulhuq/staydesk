@@ -3,16 +3,20 @@ import { FormGroup } from '@angular/forms';
 
 // Puts the API's field-level validation messages (RFC 9457 `errors`) on the matching
 // controls, so each message shows under its own field. A list item's error
-// ("imageUrls[1]") goes to the list's control. Returns false if no message found a
-// control, so the caller can show the error another way.
-export function applyServerErrors(form: FormGroup, error: unknown): boolean {
+// ("imageUrls[1]") goes to the list's control. With a prefix, only fields under it count
+// ("rule.percentChange" → percentChange), for a request that nests one form's value.
+// Returns false if no message found a control, so the caller can show the error another way.
+export function applyServerErrors(form: FormGroup, error: unknown, prefix = ''): boolean {
   if (!(error instanceof HttpErrorResponse) || error.status !== 400 || !error.error?.errors) {
     return false;
   }
 
   const byControl = new Map<string, string[]>();
   for (const [field, messages] of Object.entries(error.error.errors as Record<string, string[]>)) {
-    const name = field.replace(/\[\d+\]$/, '');
+    if (!field.startsWith(prefix)) {
+      continue;
+    }
+    const name = field.slice(prefix.length).replace(/\[\d+\]$/, '');
     byControl.set(name, [...(byControl.get(name) ?? []), ...messages]);
   }
 

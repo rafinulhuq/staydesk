@@ -1,0 +1,230 @@
+<div class="page-header">
+  <h1>
+    {{ (id ? 'admin.pricing.editTitle' : 'admin.pricing.newTitle') | translate }}
+  </h1>
+</div>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'admin.pricing.notFound' | translate }}
+      <a mat-button routerLink="/admin/pricing">{{ 'admin.common.backToList' | translate }}</a>
+    </p>
+  }
+  @default {
+    <div class="layout">
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field class="full-width">
+          <mat-label>{{ 'admin.pricing.fields.name' | translate }}</mat-label>
+          <input matInput formControlName="name" />
+          @if (form.controls.name.hasError('server')) {
+            <mat-error>{{ form.controls.name.getError('server') }}</mat-error>
+          } @else if (form.controls.name.invalid) {
+            <mat-error>{{ 'validation.required' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ 'admin.pricing.fields.appliesTo' | translate }}</mat-label>
+          <mat-select formControlName="roomId">
+            <mat-option value="">{{ 'admin.pricing.allRooms' | translate }}</mat-option>
+            @for (room of rooms(); track room.id) {
+              <mat-option [value]="room.id">
+                {{ 'admin.pricing.room' | translate: { number: room.roomNumber } }}
+              </mat-option>
+            }
+          </mat-select>
+          @if (form.controls.roomId.hasError('server')) {
+            <mat-error>{{ form.controls.roomId.getError('server') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ 'admin.pricing.fields.type' | translate }}</mat-label>
+          <mat-select formControlName="type">
+            @for (type of ruleTypes; track type) {
+              <mat-option [value]="type">{{ 'priceRuleTypes.' + type | translate }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>{{ 'admin.pricing.fields.percentChange' | translate }}</mat-label>
+          <input
+            matInput
+            type="number"
+            min="-90"
+            max="300"
+            step="0.01"
+            formControlName="percentChange"
+          />
+          <span matTextSuffix>%</span>
+          <mat-hint>{{ 'admin.pricing.percentHint' | translate }}</mat-hint>
+          @if (form.controls.percentChange.hasError('server')) {
+            <mat-error>{{ form.controls.percentChange.getError('server') }}</mat-error>
+          } @else if (form.controls.percentChange.invalid) {
+            <mat-error>{{ 'admin.pricing.percentRange' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        @switch (form.controls.type.value) {
+          @case ('Seasonal') {
+            <mat-form-field>
+              <mat-label>{{ 'admin.pricing.fields.dates' | translate }}</mat-label>
+              <mat-date-range-input [rangePicker]="season">
+                <input
+                  matStartDate
+                  formControlName="startDate"
+                  [placeholder]="'admin.pricing.fields.startDate' | translate"
+                />
+                <input
+                  matEndDate
+                  formControlName="endDate"
+                  [placeholder]="'admin.pricing.fields.endDate' | translate"
+                />
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="season" />
+              <mat-date-range-picker #season />
+              <mat-hint>{{ 'admin.pricing.datesHint' | translate }}</mat-hint>
+              @if (form.controls.startDate.hasError('server')) {
+                <mat-error>{{ form.controls.startDate.getError('server') }}</mat-error>
+              } @else if (form.controls.endDate.hasError('server')) {
+                <mat-error>{{ form.controls.endDate.getError('server') }}</mat-error>
+              }
+            </mat-form-field>
+          }
+          @case ('LengthOfStay') {
+            <mat-form-field>
+              <mat-label>{{ 'admin.pricing.fields.minNights' | translate }}</mat-label>
+              <input matInput type="number" min="1" max="30" formControlName="minNights" />
+              @if (form.controls.minNights.hasError('server')) {
+                <mat-error>{{ form.controls.minNights.getError('server') }}</mat-error>
+              }
+            </mat-form-field>
+          }
+          @case ('LastMinute') {
+            <mat-form-field>
+              <mat-label>{{ 'admin.pricing.fields.daysBeforeCheckIn' | translate }}</mat-label>
+              <input matInput type="number" min="0" formControlName="daysBeforeCheckIn" />
+              <mat-hint>{{ 'admin.pricing.daysHint' | translate }}</mat-hint>
+              @if (form.controls.daysBeforeCheckIn.hasError('server')) {
+                <mat-error>{{ form.controls.daysBeforeCheckIn.getError('server') }}</mat-error>
+              }
+            </mat-form-field>
+          }
+          @default {
+            <p class="type-hint">{{ 'admin.pricing.details.Weekend' | translate }}</p>
+          }
+        }
+
+        @if (unexpectedError()) {
+          <p class="form-error" role="alert">{{ 'errors.unexpected' | translate }}</p>
+        }
+
+        <div class="form-actions">
+          <button mat-flat-button type="submit" [disabled]="submitting()">
+            {{ 'admin.common.save' | translate }}
+          </button>
+          <a mat-button routerLink="/admin/pricing" [queryParams]="{ propertyId: propertyId() }">
+            {{ 'common.cancel' | translate }}
+          </a>
+        </div>
+      </form>
+
+      <section class="preview" aria-live="polite">
+        <h2>{{ 'admin.pricing.preview.title' | translate }}</h2>
+        @if (rooms().length === 0) {
+          <p class="hint">{{ 'admin.pricing.preview.noRooms' | translate }}</p>
+        } @else {
+          <form [formGroup]="previewForm" (ngSubmit)="runPreview()" novalidate>
+            <mat-form-field>
+              <mat-label>{{ 'admin.pricing.preview.room' | translate }}</mat-label>
+              <mat-select formControlName="roomId">
+                @for (room of rooms(); track room.id) {
+                  <mat-option [value]="room.id">
+                    {{ 'admin.pricing.room' | translate: { number: room.roomNumber } }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ 'search.fields.dates' | translate }}</mat-label>
+              <mat-date-range-input [rangePicker]="stay" [min]="today">
+                <input
+                  matStartDate
+                  formControlName="checkIn"
+                  [placeholder]="'search.fields.checkIn' | translate"
+                />
+                <input
+                  matEndDate
+                  formControlName="checkOut"
+                  [placeholder]="'search.fields.checkOut' | translate"
+                />
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="stay" />
+              <mat-date-range-picker #stay />
+              @if (previewForm.controls.checkIn.hasError('server')) {
+                <mat-error>{{ previewForm.controls.checkIn.getError('server') }}</mat-error>
+              } @else if (previewForm.controls.checkOut.hasError('server')) {
+                <mat-error>{{ previewForm.controls.checkOut.getError('server') }}</mat-error>
+              }
+            </mat-form-field>
+            <button mat-stroked-button type="submit">
+              {{ 'admin.pricing.preview.run' | translate }}
+            </button>
+          </form>
+
+          @switch (previewState()) {
+            @case ('loading') {
+              <p class="hint">{{ 'common.loading' | translate }}</p>
+            }
+            @case ('invalid') {
+              <p class="form-error" role="alert">
+                {{ 'admin.pricing.preview.invalid' | translate }}
+              </p>
+            }
+            @case ('error') {
+              <p class="form-error" role="alert">{{ 'errors.unexpected' | translate }}</p>
+            }
+            @case ('loaded') {
+              @if (preview(); as p) {
+                <table class="comparison">
+                  <thead>
+                    <tr>
+                      <th scope="col">{{ 'room.quote.night' | translate }}</th>
+                      <th scope="col" class="amount">
+                        {{ 'admin.pricing.preview.current' | translate }}
+                      </th>
+                      <th scope="col" class="amount">
+                        {{ 'admin.pricing.preview.withRule' | translate }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (night of p.withRule.nights; track night.date; let i = $index) {
+                      <tr [class.changed]="night.price !== p.current.nights[i].price">
+                        <td>{{ night.date | localDate }}</td>
+                        <td class="amount">{{ p.current.nights[i].price | eur }}</td>
+                        <td class="amount">{{ night.price | eur }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th scope="row">{{ 'admin.pricing.preview.total' | translate }}</th>
+                      <td class="amount">{{ p.current.total | eur }}</td>
+                      <td class="amount total">{{ p.withRule.total | eur }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              }
+            }
+          }
+        }
+      </section>
+    </div>
+  }
+}

@@ -41,6 +41,7 @@ export class AdminLayout {
       links.push(
         { path: '/admin/properties', key: 'admin.nav.properties' },
         { path: '/admin/rooms', key: 'admin.nav.rooms' },
+        { path: '/admin/pricing', key: 'admin.nav.pricing' },
       );
     }
     return links;

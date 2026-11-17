@@ -39,4 +39,29 @@ public class PriceRule
         MinNights = minNights;
         DaysBeforeCheckIn = daysBeforeCheckIn;
     }
+
+    public void Update(
+        Guid propertyId,
+        Guid? roomId,
+        string name,
+        PriceRuleType type,
+        decimal percentChange,
+        DateOnly? startDate,
+        DateOnly? endDate,
+        int? minNights,
+        int? daysBeforeCheckIn)
+    {
+        PropertyId = propertyId;
+        RoomId = roomId;
+        Name = name;
+        Type = type;
+        PercentChange = percentChange;
+        StartDate = startDate;
+        EndDate = endDate;
+        MinNights = minNights;
+        DaysBeforeCheckIn = daysBeforeCheckIn;
+    }
+
+    // Soft delete: bookings keep the rule's name and percent in their price snapshot (PRICE-5).
+    public void Deactivate() => IsActive = false;
 }

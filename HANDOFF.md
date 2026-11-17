@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 20:20 +06
+**Last updated:** 2026-11-17 21:30 +06
 
 ## Where things stand
 
-- **Phase:** 3d done (home, search, property and room pages; `GET /rooms/{id}/availability`). **Next: 3e**: price rules admin page (`/admin/pricing`), which needs the `/price-rules` CRUD API (PRICE-2, PRICE-7, PRICE-8).
+- **Phase:** 3e done, so Phase 3 (search and pricing) is complete. **Next: 4a**: Booking entity status machine with unit tests (BOOK-3, BOOK-4), plus the demo bookings in the seeder (T-022).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037.

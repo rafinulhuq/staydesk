@@ -1,0 +1,117 @@
+<div class="page-header">
+  <h1>{{ 'admin.pricing.title' | translate }}</h1>
+  @if (hasProperties()) {
+    <mat-form-field class="property-select" subscriptSizing="dynamic">
+      <mat-label>{{ 'admin.rooms.property' | translate }}</mat-label>
+      <mat-select [value]="propertyId()" (selectionChange)="selectProperty($event.value)">
+        @for (property of properties(); track property.id) {
+          <mat-option [value]="property.id">
+            {{ property.name }}, {{ property.city }}
+            @if (!property.isActive) {
+              ({{ 'admin.common.inactive' | translate }})
+            }
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+  @if (propertyId(); as id) {
+    <a mat-flat-button routerLink="new" [queryParams]="{ propertyId: id }">
+      {{ 'admin.pricing.new' | translate }}
+    </a>
+  }
+</div>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'admin.common.loadFailed' | translate }}
+      <button mat-button type="button" (click)="loadRules()">
+        {{ 'common.retry' | translate }}
+      </button>
+    </p>
+  }
+  @default {
+    @if (rules().length === 0) {
+      <p class="state">{{ 'admin.pricing.empty' | translate }}</p>
+    } @else {
+      <div class="table-scroll">
+        <table mat-table [dataSource]="rules()">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.pricing.fields.name' | translate }}</th>
+            <td mat-cell *matCellDef="let rule">{{ rule.name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="appliesTo">
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'admin.pricing.fields.appliesTo' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let rule">
+              @if (rule.roomId) {
+                {{
+                  'admin.pricing.room'
+                    | translate: { number: roomNumbers().get(rule.roomId) ?? '?' }
+                }}
+              } @else {
+                {{ 'admin.pricing.allRooms' | translate }}
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>{{ 'admin.pricing.fields.type' | translate }}</th>
+            <td mat-cell *matCellDef="let rule">{{ 'priceRuleTypes.' + rule.type | translate }}</td>
+          </ng-container>
+          <ng-container matColumnDef="percentChange">
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'admin.pricing.fields.percentChange' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let rule">{{ rule.percentChange | percentChange }}</td>
+          </ng-container>
+          <ng-container matColumnDef="details">
+            <th mat-header-cell *matHeaderCellDef>
+              {{ 'admin.pricing.fields.details' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let rule">
+              @switch (rule.type) {
+                @case ('Seasonal') {
+                  {{
+                    'admin.pricing.details.Seasonal'
+                      | translate
+                        : { from: (rule.startDate | localDate), to: (rule.endDate | localDate) }
+                  }}
+                }
+                @case ('LengthOfStay') {
+                  {{ 'admin.pricing.details.LengthOfStay' | translate: { nights: rule.minNights } }}
+                }
+                @case ('LastMinute') {
+                  {{
+                    'admin.pricing.details.LastMinute' | translate: { days: rule.daysBeforeCheckIn }
+                  }}
+                }
+                @default {
+                  {{ 'admin.pricing.details.Weekend' | translate }}
+                }
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions">
+              {{ 'admin.common.actions' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let rule" class="actions">
+              <a mat-button [routerLink]="rule.id">{{ 'admin.common.edit' | translate }}</a>
+              <button mat-button type="button" (click)="deactivate(rule)">
+                {{ 'admin.common.deactivate' | translate }}
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let rule; columns: columns"></tr>
+        </table>
+      </div>
+    }
+  }
+}

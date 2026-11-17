@@ -120,7 +120,8 @@
     "nav": {
       "dashboard": "Dashboard",
       "properties": "Properties",
-      "rooms": "Rooms"
+      "rooms": "Rooms",
+      "pricing": "Price rules"
     },
     "common": {
       "showInactive": "Show inactive",
@@ -187,6 +188,52 @@
         "title": "Room deactivated, bookings still use it",
         "message": "These bookings stay valid. Contact the guests if they need to move."
       }
+    },
+    "pricing": {
+      "title": "Price rules",
+      "new": "New rule",
+      "empty": "No price rules for this property. Every night costs the room's base price.",
+      "newTitle": "New price rule",
+      "editTitle": "Edit price rule",
+      "notFound": "This price rule no longer exists.",
+      "allRooms": "All rooms",
+      "room": "Room {{number}}",
+      "percentHint": "+20 = 20 % surcharge, −10 = 10 % discount",
+      "percentRange": "Between −90 and +300",
+      "datesHint": "Both dates included",
+      "daysHint": "0 = only on the day of arrival",
+      "fields": {
+        "name": "Name",
+        "appliesTo": "Applies to",
+        "type": "Type",
+        "percentChange": "Change",
+        "details": "When",
+        "dates": "Season",
+        "startDate": "From",
+        "endDate": "To",
+        "minNights": "Minimum nights",
+        "daysBeforeCheckIn": "Days before check-in"
+      },
+      "details": {
+        "Seasonal": "{{from}} to {{to}}",
+        "Weekend": "Friday and Saturday nights",
+        "LengthOfStay": "Stays of {{nights}} nights or more",
+        "LastMinute": "Check-in within {{days}} days"
+      },
+      "deactivate": {
+        "title": "Deactivate {{name}}?",
+        "message": "New quotes and bookings no longer use this rule. Existing bookings keep the price they were booked at."
+      },
+      "preview": {
+        "title": "Preview price",
+        "noRooms": "This property has no rooms to preview.",
+        "room": "Room",
+        "run": "Preview",
+        "current": "Now",
+        "withRule": "With this rule",
+        "total": "Total",
+        "invalid": "Check the highlighted fields."
+      }
     }
   },
   "auth": {
@@ -230,5 +277,11 @@
     "Twin": "Twin",
     "Suite": "Suite",
     "Apartment": "Apartment"
+  },
+  "priceRuleTypes": {
+    "Seasonal": "Seasonal",
+    "Weekend": "Weekend",
+    "LengthOfStay": "Length of stay",
+    "LastMinute": "Last minute"
   }
 }

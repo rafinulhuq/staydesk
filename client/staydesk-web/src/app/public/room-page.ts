@@ -14,7 +14,7 @@ import { PropertyDetail, RoomDetail } from '../shared/inventory.models';
 import { addDays, fromIsoDate, toIsoDate, today } from '../shared/iso-date';
 import { LocalDatePipe } from '../shared/local-date.pipe';
 import { plural } from '../shared/plural';
-import { StayQuote } from './catalog.models';
+import { StayQuote } from '../shared/pricing.models';
 import { CatalogService } from './catalog.service';
 
 const calendarDays = 60;

@@ -120,7 +120,8 @@
     "nav": {
       "dashboard": "Übersicht",
       "properties": "Unterkünfte",
-      "rooms": "Zimmer"
+      "rooms": "Zimmer",
+      "pricing": "Preisregeln"
     },
     "common": {
       "showInactive": "Inaktive anzeigen",
@@ -187,6 +188,52 @@
         "title": "Zimmer deaktiviert, Buchungen bestehen noch",
         "message": "Diese Buchungen bleiben gültig. Kontaktieren Sie die Gäste, falls sie umziehen müssen."
       }
+    },
+    "pricing": {
+      "title": "Preisregeln",
+      "new": "Neue Regel",
+      "empty": "Keine Preisregeln für dieses Haus. Jede Nacht kostet den Grundpreis des Zimmers.",
+      "newTitle": "Neue Preisregel",
+      "editTitle": "Preisregel bearbeiten",
+      "notFound": "Diese Preisregel gibt es nicht mehr.",
+      "allRooms": "Alle Zimmer",
+      "room": "Zimmer {{number}}",
+      "percentHint": "+20 = 20 % Aufschlag, −10 = 10 % Rabatt",
+      "percentRange": "Zwischen −90 und +300",
+      "datesHint": "Beide Tage eingeschlossen",
+      "daysHint": "0 = nur am Anreisetag",
+      "fields": {
+        "name": "Name",
+        "appliesTo": "Gilt für",
+        "type": "Art",
+        "percentChange": "Änderung",
+        "details": "Wann",
+        "dates": "Zeitraum",
+        "startDate": "Von",
+        "endDate": "Bis",
+        "minNights": "Mindestanzahl Nächte",
+        "daysBeforeCheckIn": "Tage vor Anreise"
+      },
+      "details": {
+        "Seasonal": "{{from}} bis {{to}}",
+        "Weekend": "Nächte von Freitag und Samstag",
+        "LengthOfStay": "Aufenthalte ab {{nights}} Nächten",
+        "LastMinute": "Anreise innerhalb von {{days}} Tagen"
+      },
+      "deactivate": {
+        "title": "{{name}} deaktivieren?",
+        "message": "Neue Angebote und Buchungen verwenden diese Regel nicht mehr. Bestehende Buchungen behalten ihren gebuchten Preis."
+      },
+      "preview": {
+        "title": "Preisvorschau",
+        "noRooms": "Dieses Haus hat keine Zimmer für eine Vorschau.",
+        "room": "Zimmer",
+        "run": "Vorschau",
+        "current": "Aktuell",
+        "withRule": "Mit dieser Regel",
+        "total": "Gesamt",
+        "invalid": "Bitte die markierten Felder prüfen."
+      }
     }
   },
   "auth": {
@@ -230,5 +277,11 @@
     "Twin": "Zweibettzimmer",
     "Suite": "Suite",
     "Apartment": "Apartment"
+  },
+  "priceRuleTypes": {
+    "Seasonal": "Saison",
+    "Weekend": "Wochenende",
+    "LengthOfStay": "Aufenthaltsdauer",
+    "LastMinute": "Last Minute"
   }
 }

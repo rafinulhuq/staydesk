@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<RoomService>();
         services.AddScoped<RoomSearchService>();
         services.AddScoped<PricingService>();
+        services.AddScoped<PriceRuleService>();
         return services;
     }
 }

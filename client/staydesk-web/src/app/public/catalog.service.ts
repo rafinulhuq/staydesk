@@ -2,13 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Amenity, PropertyDetail, PropertySummary, RoomDetail } from '../shared/inventory.models';
-import {
-  Paged,
-  RoomAvailability,
-  RoomSearchQuery,
-  RoomSearchResult,
-  StayQuote,
-} from './catalog.models';
+import { Paged, RoomAvailability, RoomSearchQuery, RoomSearchResult } from './catalog.models';
+import { StayQuote } from '../shared/pricing.models';
 
 export const searchPageSize = 10;
 
