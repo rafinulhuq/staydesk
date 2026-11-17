@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-17 23:00 +06
+**Last updated:** 2026-11-17 23:45 +06
 
 ## Where things stand
 
-- **Phase:** 4a done (Booking status machine, demo bookings). **Next: 4b**: `POST /bookings` with the room row lock, exclusion constraint mapping to 409 and `Idempotency-Key` (BOOK-1, BOOK-2, BOOK-8), plus the concurrent double-booking integration test (NFR-5).
+- **Phase:** 4b done (`POST /bookings` with row lock, constraint mapping and idempotency; `GET /bookings/{id}`). **Next: 4c**: `POST /bookings/{id}/pay` (mock payment, 409 `booking_expired`), the expiry background job, `cancellation-quote` and `cancel` with the BOOK-5 fee (closes T-052).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051.
@@ -54,6 +54,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - esbuild bundles a library file as one module: if anything in the first-load code imports from a file (e.g. `@angular/forms`), every part of it used anywhere lands in the initial chunk. Check `ng build --stats-json` (`dist/staydesk-web/browser-stats.json`) before raising the budget.
 - MSBuild skips a project whose source is older than its DLL. Restoring a file with `mv x.bak x` after a build keeps the old (wrong) DLL; `touch` the file first.
 - Npgsql writes only UTC `DateTimeOffset` to `timestamptz`; convert local instants with `ToUniversalTime()`.
+- `StayDeskDbContext.SaveChangesAsync` turns the `ex_bookings_no_overlap` violation into a 409 `ProblemException` and the idempotency index violation into 422. Tests that expect a raw `DbUpdateException` from bookings won't see one.
 - Never `pkill -f "<pattern>"` through `flatpak-spawn`: the pattern matches the spawn command itself and kills the agent shell. Use `pgrep -af` to find the PID, then `kill <pid>`.
 - Angular 22: `CanMatchFn` takes a third argument (`currentSnapshot`); test helpers must pass it. Material colour tweaks go through `mat.*-overrides` mixins; the toolbar passes its text colour to text buttons, so use `mat.toolbar-overrides`.
 - Angular reactive forms: a server error set with `setErrors` is cleared by the next validation run (value change or first render). Component tests must render before submitting.
@@ -68,4 +69,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-004/T-005/T-050/T-051 whenever.
-2. Phase 4b: list the requirement IDs (BOOK-1, BOOK-2, BOOK-8, NFR-5) and the files to touch. Reuse `Booking.FormatReference` and the reference sequence the seeder already reads; map `23P01` to 409 `room_unavailable`.
+2. Phase 4c: list the requirement IDs (BOOK-3 expiry job, BOOK-5, BOOK-7 email, Payment) and the files to touch. `Booking.Confirm` already throws `BookingExpiredException` (→ 409); add fee and refund to `Booking.Cancel` (T-052). The job must use the domain `Cancel`, and correctness must not depend on it.

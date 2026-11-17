@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage;
 using StayDesk.Domain.Bookings;
 using StayDesk.Domain.Pricing;
 using StayDesk.Domain.Properties;
@@ -19,4 +20,9 @@ public interface IStayDeskDbContext
 
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
     Task<int> SaveChangesAsync(CancellationToken ct = default);
+
+    // BOOK-2 steps that need raw SQL, kept in Infrastructure so Application stays provider-neutral.
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct);
+    Task LockRoomAsync(Guid roomId, CancellationToken ct);
+    Task<long> NextBookingNumberAsync(CancellationToken ct);
 }

@@ -8,7 +8,6 @@ using StayDesk.Domain.Pricing;
 using StayDesk.Domain.Properties;
 using StayDesk.Domain.Rooms;
 using StayDesk.Infrastructure.Identity;
-using StayDesk.Infrastructure.Persistence.Configurations;
 
 namespace StayDesk.Infrastructure.Persistence.Seeding;
 
@@ -215,7 +214,7 @@ public class DbSeeder(
                     LocalInstant(property, checkIn.AddDays(-random.Next(1, 22)), new TimeOnly(random.Next(8, 22), 0)),
                     now.AddHours(-random.Next(1, 48)));
                 var quote = PricingEngine.Quote(room, rules[property.Id], new Stay(checkIn, checkOut, property.TodayAt(createdAt)));
-                var number = await db.Database.SqlQueryRaw<long>(NextReferenceSql).SingleAsync(ct);
+                var number = await db.NextBookingNumberAsync(ct);
 
                 var booking = new Booking(
                     Booking.FormatReference(createdAt.UtcDateTime.Year, number), room.Id, guest.Id, checkIn, checkOut,
@@ -260,8 +259,6 @@ public class DbSeeder(
             booking.MarkCheckedOut(LocalInstant(property, booking.CheckOut, property.CheckOutTime).AddMinutes(-random.Next(0, 120)));
         }
     }
-
-    private const string NextReferenceSql = "SELECT nextval('" + BookingConfiguration.ReferenceSequence + "') AS \"Value\"";
 
     private static readonly (string First, string Last, string Email)[] DemoGuests =
     [

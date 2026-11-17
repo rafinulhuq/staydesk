@@ -16,18 +16,7 @@ public sealed class ProblemExceptionHandler(IProblemDetailsService problemDetail
         ProblemDetails? problem = exception switch
         {
             ValidationException validation => ValidationProblem(validation),
-            ProblemException known => new ProblemDetails
-            {
-                Status = known.Kind switch
-                {
-                    ProblemKind.Unauthorized => StatusCodes.Status401Unauthorized,
-                    ProblemKind.NotFound => StatusCodes.Status404NotFound,
-                    ProblemKind.Conflict => StatusCodes.Status409Conflict,
-                    _ => throw new ArgumentOutOfRangeException(nameof(exception), known.Kind, null),
-                },
-                Detail = known.Message,
-                Extensions = { ["code"] = known.Code },
-            },
+            ProblemException known => KnownProblem(known),
             InvalidStatusTransitionException transition => new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
@@ -62,6 +51,28 @@ public sealed class ProblemExceptionHandler(IProblemDetailsService problemDetail
             ProblemDetails = problem,
             Exception = exception,
         });
+    }
+
+    private static ProblemDetails KnownProblem(ProblemException known)
+    {
+        var problem = new ProblemDetails
+        {
+            Status = known.Kind switch
+            {
+                ProblemKind.Unauthorized => StatusCodes.Status401Unauthorized,
+                ProblemKind.NotFound => StatusCodes.Status404NotFound,
+                ProblemKind.Conflict => StatusCodes.Status409Conflict,
+                ProblemKind.Unprocessable => StatusCodes.Status422UnprocessableEntity,
+                _ => throw new ArgumentOutOfRangeException(nameof(known), known.Kind, null),
+            },
+            Detail = known.Message,
+            Extensions = { ["code"] = known.Code },
+        };
+        foreach (var (key, value) in known.Extensions)
+        {
+            problem.Extensions[key] = value;
+        }
+        return problem;
     }
 
     private static ValidationProblemDetails ValidationProblem(ValidationException exception) =>

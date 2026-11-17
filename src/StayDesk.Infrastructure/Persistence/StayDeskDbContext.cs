@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
+using StayDesk.Application.Errors;
 using StayDesk.Application.Persistence;
 using StayDesk.Domain.Auditing;
 using StayDesk.Domain.Bookings;
@@ -24,6 +27,36 @@ public class StayDeskDbContext(DbContextOptions<StayDeskDbContext> options)
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct) => Database.BeginTransactionAsync(ct);
+
+    // BOOK-2: holds the room row until the transaction ends, so booking attempts for one room
+    // run one after another and each sees the bookings the previous one committed.
+    public async Task LockRoomAsync(Guid roomId, CancellationToken ct) =>
+        await Database.ExecuteSqlAsync($"SELECT 1 FROM rooms WHERE id = {roomId} FOR UPDATE", ct);
+
+    // BOOK-1: the number part of the booking reference.
+    public async Task<long> NextBookingNumberAsync(CancellationToken ct) =>
+        await Database.SqlQueryRaw<long>("SELECT nextval('" + BookingConfiguration.ReferenceSequence + "') AS \"Value\"")
+            .SingleAsync(ct);
+
+    // The constraints are the last line of defence behind the room lock (BOOK-2) and the
+    // idempotency lookup (BOOK-8). Their violations are expected outcomes, not server errors.
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken ct = default)
+    {
+        try
+        {
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
+        }
+        catch (DbUpdateException e) when (e.InnerException is PostgresException { SqlState: PostgresErrorCodes.ExclusionViolation, ConstraintName: BookingConfiguration.NoOverlapConstraint })
+        {
+            throw new ProblemException(ProblemKind.Conflict, "room_unavailable", "The room is no longer available for these dates.");
+        }
+        catch (DbUpdateException e) when (e.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: BookingConfiguration.IdempotencyIndex })
+        {
+            throw new ProblemException(ProblemKind.Unprocessable, "idempotency_key_reused", "This Idempotency-Key was already used for a different booking.");
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

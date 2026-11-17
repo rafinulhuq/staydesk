@@ -14,9 +14,17 @@ public sealed class PricingService(IStayDeskDbContext db, TimeProvider time)
     // Public: only active rooms in active properties can be quoted (PROP-3).
     public async Task<StayQuote> QuoteAsync(QuoteRequest request, CancellationToken ct)
     {
-        var (room, property) = await LoadRoomAsync(request.RoomId, includeInactive: false, ct);
-        var stay = StayAt(property, request);
-        return ToQuote(room.Id, stay, PricingEngine.Quote(room, await LoadRulesAsync(room, ct), stay));
+        var priced = await PriceStayAsync(request.RoomId, request, ct);
+        return ToQuote(priced.Room.Id, priced.Stay, priced.Quote);
+    }
+
+    // Also used by BookingService, which stores the domain snapshot (PRICE-5) and recomputes
+    // the price on the server (PRICE-7), so a quote and a booking can't be priced differently.
+    internal async Task<PricedStay> PriceStayAsync(Guid roomId, IStayDates dates, CancellationToken ct)
+    {
+        var (room, property) = await LoadRoomAsync(roomId, includeInactive: false, ct);
+        var stay = StayAt(property, dates);
+        return new PricedStay(room, property, stay, PricingEngine.Quote(room, await LoadRulesAsync(room, ct), stay));
     }
 
     // PRICE-8: the draft rule is built in memory and never saved. Admin may preview an
@@ -73,7 +81,7 @@ public sealed class PricingService(IStayDeskDbContext db, TimeProvider time)
         return new Stay(dates.CheckIn, dates.CheckOut, today);
     }
 
-    private static StayQuote ToQuote(Guid roomId, Stay stay, PriceQuote quote) => new(
+    internal static StayQuote ToQuote(Guid roomId, Stay stay, PriceQuote quote) => new(
         roomId,
         stay.CheckIn,
         stay.CheckOut,
@@ -90,3 +98,5 @@ public sealed class PricingService(IStayDeskDbContext db, TimeProvider time)
     private static ProblemException RoomNotFound() =>
         new(ProblemKind.NotFound, "room_not_found", "Room not found.");
 }
+
+internal sealed record PricedStay(Room Room, Property Property, Stay Stay, PriceQuote Quote);

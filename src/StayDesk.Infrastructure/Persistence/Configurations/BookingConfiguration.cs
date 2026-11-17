@@ -11,6 +11,10 @@ internal class BookingConfiguration : IEntityTypeConfiguration<Booking>
     // BOOK-1: the number part of "SD-2026-000123" comes from this sequence.
     public const string ReferenceSequence = "booking_reference_seq";
 
+    // Names the database reports on violations; StayDeskDbContext maps them to 409 and 422.
+    public const string NoOverlapConstraint = "ex_bookings_no_overlap";
+    public const string IdempotencyIndex = "ix_bookings_created_by_id_idempotency_key";
+
     public void Configure(EntityTypeBuilder<Booking> builder)
     {
         builder.Property(b => b.Reference).HasMaxLength(20);

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
+using StayDesk.Application.Errors;
 using StayDesk.Domain.Bookings;
 using StayDesk.Domain.Properties;
 using StayDesk.Domain.Rooms;
@@ -14,7 +14,9 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task Overlapping_active_bookings_for_one_room_are_rejected_with_exclusion_violation()
+    // The insert skips the room lock on purpose, so only the exclusion constraint can stop it.
+    // The DbContext turns the 23P01 violation into room_unavailable (409), never a 500.
+    public async Task Overlapping_active_bookings_for_one_room_are_rejected_as_room_unavailable()
     {
         var (room, guest) = await SeedRoomAndGuest();
         await using var db = fixture.CreateContext();
@@ -22,11 +24,10 @@ public class BookingSchemaTests(PostgresFixture fixture) : IClassFixture<Postgre
         await db.SaveChangesAsync(Ct);
 
         db.Bookings.Add(NewBooking(room, guest, new(2026, 12, 12), new(2026, 12, 14)));
-        var ex = await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync(Ct));
+        var ex = await Assert.ThrowsAsync<ProblemException>(() => db.SaveChangesAsync(Ct));
 
-        var pg = Assert.IsType<PostgresException>(ex.InnerException);
-        Assert.Equal(PostgresErrorCodes.ExclusionViolation, pg.SqlState);
-        Assert.Equal("ex_bookings_no_overlap", pg.ConstraintName);
+        Assert.Equal(ProblemKind.Conflict, ex.Kind);
+        Assert.Equal("room_unavailable", ex.Code);
     }
 
     [Fact]
