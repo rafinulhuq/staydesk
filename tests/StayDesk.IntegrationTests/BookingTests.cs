@@ -376,6 +376,22 @@ public class BookingTests(ApiFixture api) : IClassFixture<ApiFixture>
         Assert.True(body.RootElement.GetProperty("errors").TryGetProperty("newGuest.email", out _));
     }
 
+    [Fact]
+    public async Task My_bookings_split_upcoming_holds_from_cancelled_ones_and_show_only_my_own()
+    {
+        var guest = await NewGuestAsync();
+        var kept = await BookAsync(guest);
+        var cancelled = await BookAsync(guest);
+        await guest.PostAsJsonAsync($"/api/v1/bookings/{cancelled.Id}/cancel", new CancelBookingRequest(false), ApiFixture.Json, Ct);
+        await BookAsync(await GuestAsync());
+
+        var upcoming = await guest.GetFromJsonAsync<List<BookingSummary>>("/api/v1/bookings/my?scope=Upcoming", ApiFixture.Json, Ct);
+        var past = await guest.GetFromJsonAsync<List<BookingSummary>>("/api/v1/bookings/my?scope=Past", ApiFixture.Json, Ct);
+
+        Assert.Equal([kept.Id], upcoming!.Select(b => b.Id));
+        Assert.Equal([cancelled.Id], past!.Select(b => b.Id));
+    }
+
     private Task<HttpClient> StaffAsync() => api.CreateClientAsync("staff@example.com", "Staff123");
 
     private static string NewEmail() => $"walkin.{Guid.NewGuid():N}"[..20] + "@example.com";

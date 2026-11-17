@@ -119,6 +119,31 @@ public sealed class BookingService(
         return new BookingCreation(detail, Created: true);
     }
 
+    // BOOK-6: the guest's own bookings. Upcoming = still holding the room and not over yet
+    // (an expired hold counts as past, like a cancellation). "Today" is the UTC date: a list
+    // split doesn't need each property's zone, and a stay ending today stays upcoming.
+    public async Task<IReadOnlyList<BookingSummary>> ListMineAsync(Guid guestId, MyBookingsScope scope, CancellationToken ct)
+    {
+        var now = time.GetUtcNow();
+        var today = DateOnly.FromDateTime(now.UtcDateTime);
+        var upcoming = db.Bookings.Where(Booking.IsActiveAt(now)).Where(b => b.CheckOut >= today);
+        var mine = (scope == MyBookingsScope.Upcoming
+                ? upcoming
+                : db.Bookings.Where(b => !upcoming.Any(u => u.Id == b.Id)))
+            .Where(b => b.GuestId == guestId);
+        var ordered = scope == MyBookingsScope.Upcoming
+            ? mine.OrderBy(b => b.CheckIn)
+            : mine.OrderByDescending(b => b.CheckIn);
+
+        return await (
+            from b in ordered.AsNoTracking()
+            join r in db.Rooms.IgnoreQueryFilters() on b.RoomId equals r.Id
+            join p in db.Properties.IgnoreQueryFilters() on r.PropertyId equals p.Id
+            select new BookingSummary(b.Id, b.Reference, r.Id, r.RoomNumber, r.Type, p.Name,
+                b.CheckIn, b.CheckOut, b.Guests, b.Status, b.TotalPrice, b.ExpiresAt))
+            .ToListAsync(ct);
+    }
+
     // BOOK-3 mock payment by the guest who booked. Paying at or after ExpiresAt throws
     // BookingExpiredException (409). If the expiry job cancels the hold at the same moment, the
     // Booking concurrency token lets only one of them save; the other gets 409.

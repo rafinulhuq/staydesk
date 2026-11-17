@@ -1,0 +1,199 @@
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('notFound') {
+    <p class="state">{{ 'room.notFound' | translate }}</p>
+    <a mat-button routerLink="/">{{ 'common.backHome' | translate }}</a>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'room.loadFailed' | translate }}
+      <button mat-button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </p>
+  }
+  @default {
+    @if (room(); as r) {
+      <header class="page-title">
+        <h1>{{ 'book.title' | translate }}</h1>
+        <p>
+          {{ 'roomTypes.' + r.type | translate }}
+          {{ 'search.card.room' | translate: { number: r.roomNumber } }}, {{ property()?.name }}
+        </p>
+      </header>
+
+      @if (notice(); as n) {
+        <p class="notice" role="alert">
+          @if (n === 'priceChanged' && quote(); as q) {
+            {{ 'book.notice.priceChanged' | translate: { total: (q.total | eur) } }}
+          } @else {
+            {{ 'book.notice.' + n | translate }}
+          }
+          @if (n === 'expired' || n === 'roomUnavailable') {
+            <button mat-button type="button" (click)="startAgain()">
+              {{ 'book.startAgain' | translate }}
+            </button>
+          }
+        </p>
+      }
+
+      <mat-stepper linear orientation="vertical" #stepper>
+        <!-- The default step icons are Material Icons ligatures; that font isn't loaded. -->
+        <ng-template matStepperIcon="edit" let-index="index">{{ index + 1 }}</ng-template>
+        <ng-template matStepperIcon="done">✓</ng-template>
+        <mat-step
+          [stepControl]="stay"
+          [editable]="!booking()"
+          [label]="'book.steps.stay' | translate"
+        >
+          <form [formGroup]="stay" class="step-form">
+            <mat-form-field>
+              <mat-label>{{ 'search.fields.dates' | translate }}</mat-label>
+              <mat-date-range-input [rangePicker]="picker" [min]="today">
+                <input
+                  matStartDate
+                  formControlName="checkIn"
+                  [placeholder]="'search.fields.checkIn' | translate"
+                />
+                <input
+                  matEndDate
+                  formControlName="checkOut"
+                  [placeholder]="'search.fields.checkOut' | translate"
+                />
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="picker" />
+              <mat-date-range-picker #picker />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ 'search.fields.guests' | translate }}</mat-label>
+              <input matInput type="number" formControlName="guests" min="1" [max]="r.maxGuests" />
+              @if (stay.controls.guests.invalid) {
+                <mat-error>{{ 'book.guestsRange' | translate: { max: r.maxGuests } }}</mat-error>
+              }
+            </mat-form-field>
+          </form>
+
+          @switch (quoteState()) {
+            @case ('idle') {
+              <p class="hint">{{ 'room.quote.pickDates' | translate }}</p>
+            }
+            @case ('loading') {
+              <p class="hint">{{ 'common.loading' | translate }}</p>
+            }
+            @case ('invalid') {
+              <p class="state-error" role="alert">{{ 'room.quote.invalid' | translate }}</p>
+            }
+            @case ('error') {
+              <p class="state-error" role="alert">{{ 'room.quote.failed' | translate }}</p>
+            }
+            @default {
+              @if (quote(); as q) {
+                <p class="total">
+                  {{
+                    'room.quote.total.' + plural(q.nights.length)
+                      | translate: { count: q.nights.length }
+                  }}:
+                  <strong>{{ q.total | eur }}</strong>
+                </p>
+              }
+            }
+          }
+          <div class="actions">
+            <button
+              mat-flat-button
+              matStepperNext
+              type="button"
+              [disabled]="quoteState() !== 'loaded'"
+            >
+              {{ 'book.next' | translate }}
+            </button>
+          </div>
+        </mat-step>
+
+        <mat-step
+          [stepControl]="details"
+          [editable]="!booking()"
+          [label]="'book.steps.details' | translate"
+        >
+          <form [formGroup]="details" class="step-form" (ngSubmit)="reserve()">
+            <mat-form-field>
+              <mat-label>{{ 'book.fields.fullName' | translate }}</mat-label>
+              <input matInput formControlName="guestFullName" autocomplete="name" />
+              @if (details.controls.guestFullName.hasError('server')) {
+                <mat-error>{{ details.controls.guestFullName.getError('server') }}</mat-error>
+              } @else {
+                <mat-error>{{ 'validation.required' | translate }}</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ 'book.fields.email' | translate }}</mat-label>
+              <input matInput type="email" formControlName="guestEmail" autocomplete="email" />
+              @if (details.controls.guestEmail.hasError('server')) {
+                <mat-error>{{ details.controls.guestEmail.getError('server') }}</mat-error>
+              } @else if (details.controls.guestEmail.hasError('email')) {
+                <mat-error>{{ 'validation.email' | translate }}</mat-error>
+              } @else {
+                <mat-error>{{ 'validation.required' | translate }}</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ 'book.fields.phone' | translate }}</mat-label>
+              <input matInput type="tel" formControlName="guestPhone" autocomplete="tel" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>{{ 'book.fields.specialRequests' | translate }}</mat-label>
+              <textarea
+                matInput
+                formControlName="specialRequests"
+                rows="3"
+                maxlength="500"
+              ></textarea>
+              <mat-hint align="end"
+                >{{ details.controls.specialRequests.value.length }} / 500</mat-hint
+              >
+            </mat-form-field>
+            <div class="actions">
+              <button mat-button matStepperPrevious type="button">
+                {{ 'book.back' | translate }}
+              </button>
+              <button mat-flat-button type="submit" [disabled]="busy()">
+                {{ 'book.reserve' | translate }}
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <mat-step [label]="'book.steps.payment' | translate">
+          @if (booking(); as b) {
+            <dl class="facts">
+              <dt>{{ 'book.reference' | translate }}</dt>
+              <dd>{{ b.reference }}</dd>
+              <dt>{{ 'book.dates' | translate }}</dt>
+              <dd>{{ b.checkIn | localDate }} – {{ b.checkOut | localDate }}</dd>
+              <dt>{{ 'book.total' | translate }}</dt>
+              <dd>
+                <strong>{{ b.totalPrice | eur }}</strong>
+              </dd>
+            </dl>
+            @if (secondsLeft() > 0) {
+              <p class="countdown" aria-live="polite">
+                {{ 'book.countdown' | translate: { time: countdown() } }}
+              </p>
+            }
+            <p class="hint">{{ 'book.mockPayment' | translate }}</p>
+            <div class="actions">
+              <button
+                mat-flat-button
+                type="button"
+                (click)="pay()"
+                [disabled]="busy() || secondsLeft() === 0"
+              >
+                {{ 'book.pay' | translate: { total: (b.totalPrice | eur) } }}
+              </button>
+            </div>
+          }
+        </mat-step>
+      </mat-stepper>
+    }
+  }
+}

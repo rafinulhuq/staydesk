@@ -106,11 +106,39 @@
         "one": "Gesamt, 1 Nacht",
         "other": "Gesamt, {{count}} Nächte"
       }
-    }
+    },
+    "book": "Zimmer buchen",
+    "loginToBook": "Anmelden und buchen"
   },
   "account": {
     "bookings": {
-      "title": "Meine Buchungen"
+      "title": "Meine Buchungen",
+      "tabs": {
+        "Upcoming": "Bevorstehend",
+        "Past": "Vergangen"
+      },
+      "empty": {
+        "Upcoming": "Keine bevorstehenden Aufenthalte.",
+        "Past": "Keine vergangenen Buchungen."
+      },
+      "findRoom": "Zimmer finden",
+      "loadFailed": "Ihre Buchungen konnten nicht geladen werden.",
+      "pay": "Jetzt bezahlen",
+      "cancel": "Buchung stornieren",
+      "cancelTitle": "{{reference}} stornieren?",
+      "cancelUnpaid": "Es wurde noch nichts bezahlt, die Stornierung ist kostenlos.",
+      "cancelFree": "Die Stornierung ist kostenlos. {{refund}} werden erstattet.",
+      "cancelWithFee": "Der Check-in ist weniger als 48 Stunden entfernt, daher wird die erste Nacht ({{fee}}) einbehalten. {{refund}} werden erstattet.",
+      "cancelConfirm": "Buchung stornieren",
+      "cancelled": "Buchung storniert.",
+      "expired": "Die 15-minütige Reservierung ist vor der Zahlung abgelaufen.",
+      "actionFailed": "Das hat nicht geklappt. Bitte erneut versuchen.",
+      "guests": {
+        "one": "1 Gast",
+        "other": "{{count}} Gäste"
+      },
+      "cancelNoRefund": "Der Check-in ist weniger als 48 Stunden entfernt, daher wird die erste Nacht ({{fee}}) einbehalten. Es wird nichts erstattet.",
+      "keep": "Buchung behalten"
     }
   },
   "admin": {
@@ -283,5 +311,51 @@
     "Weekend": "Wochenende",
     "LengthOfStay": "Aufenthaltsdauer",
     "LastMinute": "Last Minute"
+  },
+  "book": {
+    "title": "Aufenthalt buchen",
+    "steps": {
+      "stay": "Ihr Aufenthalt",
+      "details": "Gastdaten",
+      "payment": "Zahlung"
+    },
+    "next": "Weiter",
+    "back": "Zurück",
+    "reserve": "Reservieren und weiter zur Zahlung",
+    "pay": "{{total}} bezahlen",
+    "reference": "Buchungsnummer",
+    "dates": "Zeitraum",
+    "total": "Gesamt",
+    "countdown": "Das Zimmer ist noch {{time}} für Sie reserviert.",
+    "mockPayment": "Demo-Zahlung: Es wird kein Geld abgebucht.",
+    "guestsRange": "1 bis {{max}} Gäste",
+    "startAgain": "Neu beginnen",
+    "fields": {
+      "fullName": "Vollständiger Name",
+      "email": "E-Mail",
+      "phone": "Telefon (optional)",
+      "specialRequests": "Besondere Wünsche (optional)"
+    },
+    "notice": {
+      "priceChanged": "Der Preis für diesen Aufenthalt beträgt jetzt {{total}}. Bitte prüfen und erneut reservieren.",
+      "roomUnavailable": "Dieses Zimmer wurde gerade für diese Daten gebucht. Bitte andere Daten wählen.",
+      "expired": "Die 15-minütige Reservierung ist abgelaufen, das Zimmer ist wieder frei.",
+      "failed": "Die Buchung konnte nicht abgeschlossen werden. Bitte erneut versuchen."
+    },
+    "confirmation": {
+      "title": "Buchung bestätigt",
+      "notFound": "Buchung nicht gefunden.",
+      "loadFailed": "Die Buchung konnte nicht geladen werden.",
+      "place": "Unterkunft",
+      "email": "Eine Bestätigung wurde an {{email}} gesendet."
+    }
+  },
+  "bookingStatus": {
+    "Pending": "Zahlung ausstehend",
+    "Confirmed": "Bestätigt",
+    "CheckedIn": "Eingecheckt",
+    "CheckedOut": "Ausgecheckt",
+    "Cancelled": "Storniert",
+    "NoShow": "Nicht erschienen"
   }
 }

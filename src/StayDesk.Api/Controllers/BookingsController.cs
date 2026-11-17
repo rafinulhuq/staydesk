@@ -25,6 +25,11 @@ public sealed class BookingsController(BookingService bookings) : ControllerBase
     }
 
     // Admin also holds Staff, so one role check covers both (BOOK-6).
+    [Authorize(Roles = Roles.Guest)]
+    [HttpGet("my")]
+    public async Task<IReadOnlyList<BookingSummary>> Mine([FromQuery] MyBookingsScope scope, CancellationToken ct) =>
+        await bookings.ListMineAsync(CurrentUserId, scope, ct);
+
     [HttpGet("{id:guid}")]
     public async Task<BookingDetail> Get(Guid id, CancellationToken ct) =>
         await bookings.GetAsync(id, CurrentUserId, User.IsInRole(Roles.Staff), ct);

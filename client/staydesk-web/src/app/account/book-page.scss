@@ -1,0 +1,57 @@
+// Booking stepper and confirmation; titles and .facts come from the shared detail-page styles.
+:host {
+  display: block;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 calc(var(--sd-space) * 2) calc(var(--sd-space) * 3);
+}
+
+.step-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sd-space);
+  max-width: 480px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sd-space);
+  margin-top: calc(var(--sd-space) * 2);
+}
+
+// Amber edge (tertiary): the notice needs attention but isn't an error.
+.notice {
+  padding: var(--sd-space) calc(var(--sd-space) * 2);
+  border-left: 4px solid var(--mat-sys-tertiary);
+  background: var(--mat-sys-surface-container);
+}
+
+.countdown {
+  font: var(--mat-sys-title-medium);
+}
+
+.reference {
+  font: var(--mat-sys-headline-small);
+  color: var(--mat-sys-primary);
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.state-error {
+  color: var(--mat-sys-error);
+}
+
+// Inside the vertical stepper a 360 px screen leaves too little width for two columns.
+@media (max-width: 599px) {
+  .facts {
+    grid-template-columns: 1fr;
+    row-gap: 0;
+
+    dd {
+      margin-bottom: var(--sd-space);
+    }
+  }
+}

@@ -138,6 +138,27 @@
                     </tr>
                   </tfoot>
                 </table>
+                @if (canBook()) {
+                  <div class="book">
+                    @if (auth.isLoggedIn()) {
+                      <a
+                        mat-flat-button
+                        [routerLink]="['/book', r.id]"
+                        [queryParams]="{ checkIn: q.checkIn, checkOut: q.checkOut }"
+                      >
+                        {{ 'room.book' | translate }}
+                      </a>
+                    } @else {
+                      <a
+                        mat-flat-button
+                        routerLink="/login"
+                        [queryParams]="{ returnUrl: bookUrl(q) }"
+                      >
+                        {{ 'room.loginToBook' | translate }}
+                      </a>
+                    }
+                  </div>
+                }
               }
             }
           }

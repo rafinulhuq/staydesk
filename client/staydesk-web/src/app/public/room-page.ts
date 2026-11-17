@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, forkJoin, map, of, startWith, switchMap, tap } from 'rxjs';
+import { AuthService } from '../core/auth/auth.service';
 import { EurPipe } from '../shared/eur.pipe';
 import { PropertyDetail, RoomDetail } from '../shared/inventory.models';
 import { addDays, fromIsoDate, toIsoDate, today } from '../shared/iso-date';
@@ -38,6 +39,7 @@ const calendarDays = 60;
 })
 export class RoomPage {
   readonly plural = plural;
+  readonly auth = inject(AuthService);
   private readonly catalog = inject(CatalogService);
   private readonly route = inject(ActivatedRoute);
   // The route is rooms/:id, so the parameter is always there.
@@ -53,6 +55,13 @@ export class RoomPage {
   readonly quote = signal<StayQuote | null>(null);
   readonly quoteState = signal<'idle' | 'loading' | 'loaded' | 'invalid' | 'error'>('idle');
   readonly nights = computed(() => this.quote()?.nights.length ?? 0);
+  // Staff and Admin book walk-ins in the back office, so only guests and visitors see Book.
+  readonly canBook = computed(() => !this.auth.isLoggedIn() || this.auth.hasRole('Guest'));
+
+  // Logged-out visitors go through login and come back to the stepper with the same dates.
+  bookUrl(quote: StayQuote): string {
+    return `/book/${this.id}?checkIn=${quote.checkIn}&checkOut=${quote.checkOut}`;
+  }
 
   // Dates come from the search result link, so the quote matches what the guest searched.
   readonly stay = inject(NonNullableFormBuilder).group({

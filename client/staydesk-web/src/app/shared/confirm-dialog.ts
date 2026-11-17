@@ -7,6 +7,8 @@ export interface ConfirmDialogData {
   titleKey: string;
   messageKey: string;
   confirmKey: string;
+  // Defaults to "Cancel"; a cancel-booking dialog needs "Keep booking" instead.
+  dismissKey?: string;
   params?: Record<string, string>;
 }
 
@@ -18,7 +20,9 @@ export interface ConfirmDialogData {
     <h2 mat-dialog-title>{{ data.titleKey | translate: data.params }}</h2>
     <mat-dialog-content>{{ data.messageKey | translate: data.params }}</mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
+      <button mat-button type="button" mat-dialog-close>
+        {{ data.dismissKey ?? 'common.cancel' | translate }}
+      </button>
       <button mat-flat-button type="button" [mat-dialog-close]="true">
         {{ data.confirmKey | translate }}
       </button>

@@ -1,0 +1,64 @@
+<header class="page-title">
+  <h1>{{ 'account.bookings.title' | translate }}</h1>
+</header>
+
+<mat-tab-group (selectedIndexChange)="selectTab($event)">
+  @for (s of scopes; track s) {
+    <mat-tab [label]="'account.bookings.tabs.' + s | translate" />
+  }
+</mat-tab-group>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'account.bookings.loadFailed' | translate }}
+      <button mat-button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </p>
+  }
+  @default {
+    @if (items().length === 0) {
+      <p class="state">{{ 'account.bookings.empty.' + scope() | translate }}</p>
+      @if (scope() === 'Upcoming') {
+        <a mat-button routerLink="/">{{ 'account.bookings.findRoom' | translate }}</a>
+      }
+    } @else {
+      <ul class="list">
+        @for (b of items(); track b.id) {
+          <li class="card">
+            <div class="head">
+              <strong>{{ b.propertyName }}</strong>
+              <span class="status" [attr.data-status]="b.status">{{
+                'bookingStatus.' + b.status | translate
+              }}</span>
+            </div>
+            <p>
+              {{ 'roomTypes.' + b.roomType | translate }}
+              {{ 'search.card.room' | translate: { number: b.roomNumber } }} ·
+              {{ b.checkIn | localDate }} – {{ b.checkOut | localDate }} ·
+              {{ 'account.bookings.guests.' + plural(b.guests) | translate: { count: b.guests } }}
+            </p>
+            <p class="meta">
+              <span>{{ b.reference }}</span>
+              <strong>{{ b.totalPrice | eur }}</strong>
+            </p>
+            @if (b.status === 'Pending' || b.status === 'Confirmed') {
+              <div class="actions">
+                @if (b.status === 'Pending') {
+                  <button mat-flat-button type="button" (click)="pay(b)">
+                    {{ 'account.bookings.pay' | translate }}
+                  </button>
+                }
+                <button mat-button type="button" (click)="cancel(b)">
+                  {{ 'account.bookings.cancel' | translate }}
+                </button>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  }
+}

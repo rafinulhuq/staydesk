@@ -154,3 +154,7 @@ h2 {
 .state-error {
   color: var(--mat-sys-error);
 }
+
+.book {
+  margin-top: calc(var(--sd-space) * 2);
+}

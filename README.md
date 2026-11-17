@@ -2,7 +2,7 @@
 
 Hotel booking platform with a public booking site and a staff back-office. ASP.NET Core 10 + Angular 22 + PostgreSQL.
 
-**Status:** early build. Phases 1 to 3 are done: login and registration, admin pages for properties, rooms and price rules, and the public site to search free rooms and see a per-night price breakdown. Booking comes next.
+**Status:** early build. Phases 1 to 4 are done: login and registration, admin pages for properties, rooms and price rules, the public site to search free rooms with a per-night price breakdown, and booking: a 3-step booking flow with mock payment, a confirmation email, My bookings with cancellation, and staff walk-in bookings through the API. The back-office booking screens come next.
 
 ## What it will do
 
@@ -17,12 +17,14 @@ Built:
 
 - **Deterministic pricing.** A pure pricing engine with one strategy class per rule type, multiplicative stacking, and rounding once per night, so the total always equals the sum of the nights. Admins can preview an unsaved rule against a room before saving it.
 - **Search state in the URL.** City, dates, filters, sort and page live in the query string, so a search survives reload and can be shared. Known limit: totals depend on price rules, so price filtering, sorting and paging run in memory after the SQL availability filter.
+- **No double bookings.** Booking creation locks the room row (`SELECT … FOR UPDATE`), and a PostgreSQL exclusion constraint backs it up; both outcomes map to 409, never 500. An integration test fires 20 parallel requests for the same room and dates and gets 1 × 201 and 19 × 409.
+- **Unpaid holds expire without relying on a job.** Availability ignores Pending bookings past their 15 minutes, and booking creation cancels expired holds it meets. A once-a-minute job only tidies up the rest.
+- **Idempotent booking.** `POST /bookings` requires an `Idempotency-Key`; a retry returns the original booking instead of a second one.
+- **Price snapshot.** The per-night breakdown is stored on the booking and never recalculated. If the price moved since the guest saw it, the API answers 409 with the new quote.
+- **Cancellation fee in real hours.** Free until 48 hours before the check-in instant in the property's time zone, then the first night is kept. Unit tests cover the boundary minute and the October clock change.
 
 Specified in [`docs/SRS.md`](docs/SRS.md), not yet built:
 
-- **No double bookings.** A row lock plus a PostgreSQL exclusion constraint. An integration test fires 20 parallel requests and expects 1 success and 19 conflicts.
-- **Unpaid holds expire without a background job.** Availability ignores Pending bookings past their expiry, so a sleeping free-tier host can't block rooms.
-- **Price snapshot.** The per-night breakdown is stored on the booking and never recalculated.
 - **Audit log** written by an EF Core `SaveChangesInterceptor`, not by hand in each service.
 
 ## Stack
@@ -41,10 +43,10 @@ Design decisions and their tradeoffs: [`docs/decisions.md`](docs/decisions.md).
 
 Build order from SRS §10:
 
-- [x] 1. Foundation: solution, Docker Compose, data model, seed data (bookings come in phase 4), CI
+- [x] 1. Foundation: solution, Docker Compose, data model, seed data, CI
 - [x] 2. Auth and inventory
 - [x] 3. Search and pricing
-- [ ] 4. Booking core
+- [x] 4. Booking core
 - [ ] 5. Back-office and audit log
 - [ ] 6. Live calendar and dashboard
 - [ ] 7. Translations, accessibility, deployment

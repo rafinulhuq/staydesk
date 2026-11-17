@@ -8,6 +8,12 @@ export const routes: Routes = [
     canMatch: [roleGuard('Guest')],
     loadChildren: () => import('./account/account.routes').then((m) => m.accountRoutes),
   },
+  // SRS §7: /book/:roomId is for guests; it shares the account area's chunk.
+  {
+    path: 'book',
+    canMatch: [roleGuard('Guest')],
+    loadChildren: () => import('./account/booking.routes').then((m) => m.bookingRoutes),
+  },
   {
     path: 'admin',
     canMatch: [roleGuard('Staff')],

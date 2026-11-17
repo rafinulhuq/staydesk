@@ -1,5 +1,6 @@
 using StayDesk.Application.Pricing;
 using StayDesk.Domain.Bookings;
+using StayDesk.Domain.Rooms;
 
 namespace StayDesk.Application.Bookings;
 
@@ -48,6 +49,27 @@ public sealed record BookingDetail(
     DateTimeOffset? CheckedInAt,
     DateTimeOffset? CheckedOutAt,
     DateTimeOffset? CancelledAt);
+
+public enum MyBookingsScope
+{
+    Upcoming,
+    Past,
+}
+
+// One row of My bookings (BOOK-6).
+public sealed record BookingSummary(
+    Guid Id,
+    string Reference,
+    Guid RoomId,
+    string RoomNumber,
+    RoomType RoomType,
+    string PropertyName,
+    DateOnly CheckIn,
+    DateOnly CheckOut,
+    int Guests,
+    BookingStatus Status,
+    decimal TotalPrice,
+    DateTimeOffset? ExpiresAt);
 
 // BOOK-5: waiveFee is for Staff and Admin only.
 public sealed record CancelBookingRequest(bool WaiveFee);

@@ -106,11 +106,39 @@
         "one": "Total, 1 night",
         "other": "Total, {{count}} nights"
       }
-    }
+    },
+    "book": "Book this room",
+    "loginToBook": "Log in to book"
   },
   "account": {
     "bookings": {
-      "title": "My bookings"
+      "title": "My bookings",
+      "tabs": {
+        "Upcoming": "Upcoming",
+        "Past": "Past"
+      },
+      "empty": {
+        "Upcoming": "No upcoming stays.",
+        "Past": "No past bookings."
+      },
+      "findRoom": "Find a room",
+      "loadFailed": "Couldn't load your bookings.",
+      "pay": "Pay now",
+      "cancel": "Cancel booking",
+      "cancelTitle": "Cancel {{reference}}?",
+      "cancelUnpaid": "Nothing has been paid yet, so cancelling is free.",
+      "cancelFree": "Cancelling is free. {{refund}} will be refunded.",
+      "cancelWithFee": "Check-in is less than 48 hours away, so the first night ({{fee}}) is kept. {{refund}} will be refunded.",
+      "cancelConfirm": "Cancel booking",
+      "cancelled": "Booking cancelled.",
+      "expired": "The 15-minute hold ran out before payment.",
+      "actionFailed": "That didn't work. Try again.",
+      "guests": {
+        "one": "1 guest",
+        "other": "{{count}} guests"
+      },
+      "cancelNoRefund": "Check-in is less than 48 hours away, so the first night ({{fee}}) is kept. Nothing is refunded.",
+      "keep": "Keep booking"
     }
   },
   "admin": {
@@ -283,5 +311,51 @@
     "Weekend": "Weekend",
     "LengthOfStay": "Length of stay",
     "LastMinute": "Last minute"
+  },
+  "book": {
+    "title": "Book your stay",
+    "steps": {
+      "stay": "Your stay",
+      "details": "Guest details",
+      "payment": "Payment"
+    },
+    "next": "Continue",
+    "back": "Back",
+    "reserve": "Reserve and continue to payment",
+    "pay": "Pay {{total}}",
+    "reference": "Reference",
+    "dates": "Dates",
+    "total": "Total",
+    "countdown": "The room is held for you for {{time}} more.",
+    "mockPayment": "Demo payment: no money is taken.",
+    "guestsRange": "1 to {{max}} guests",
+    "startAgain": "Start again",
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "specialRequests": "Special requests (optional)"
+    },
+    "notice": {
+      "priceChanged": "The price for this stay changed to {{total}}. Check it and reserve again.",
+      "roomUnavailable": "Someone else just booked this room for these dates. Pick other dates.",
+      "expired": "The 15-minute hold ran out and the room was released.",
+      "failed": "Couldn't complete the booking. Try again."
+    },
+    "confirmation": {
+      "title": "Booking confirmed",
+      "notFound": "Booking not found.",
+      "loadFailed": "Couldn't load the booking.",
+      "place": "Where",
+      "email": "A confirmation was sent to {{email}}."
+    }
+  },
+  "bookingStatus": {
+    "Pending": "Awaiting payment",
+    "Confirmed": "Confirmed",
+    "CheckedIn": "Checked in",
+    "CheckedOut": "Checked out",
+    "Cancelled": "Cancelled",
+    "NoShow": "No-show"
   }
 }

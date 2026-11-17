@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-18 01:15 +06
+**Last updated:** 2026-11-18 03:00 +06
 
 ## Where things stand
 
-- **Phase:** 4d done (walk-in bookings). **Next: 4e**: Angular booking stepper (`/book/:roomId`: review stay → guest details → mock payment with a 15-minute countdown), confirmation page, My bookings (`GET /bookings/my`, cancel with quote). Handles `price_changed` and `booking_expired`. Adds the Book button on the room page (T-048).
+- **Phase:** 4e done, so Phase 4 (booking core) is complete. **Next: 5a**: back-office bookings table with filters, sort, server paging and CSV export (`GET /bookings`, `GET /bookings/export`, BO-*).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059.
@@ -57,6 +57,8 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - `StayDeskDbContext.SaveChangesAsync` turns the `ex_bookings_no_overlap` violation into a 409 `ProblemException` and the idempotency index violation into 422. Tests that expect a raw `DbUpdateException` from bookings won't see one.
 - Host scripts piped with `flatpak-spawn --host sh -s < script.sh`: `docker compose` reads stdin and swallows the rest of the script. Give every docker command `</dev/null`.
 - Confirmation emails: Mailpit UI at http://localhost:8025, API `GET /api/v1/messages`. Under `dotnet test` nothing listens on SMTP, so sends fail fast and are only logged (BOOK-7).
+- Scripted browser checks: `scratchpad/shot.sh` logs in per shot; each login and each page load's `/auth/refresh` count against the 10/min auth limit (T-042). Wait for a non-429 from `/auth/login` between batches.
+- Material components that use ligature icons (stepper, some expansion/chip parts) show raw text such as "done", because the Material Icons font isn't loaded (T-062).
 - Never `pkill -f "<pattern>"` through `flatpak-spawn`: the pattern matches the spawn command itself and kills the agent shell. Use `pgrep -af` to find the PID, then `kill <pid>`.
 - Angular 22: `CanMatchFn` takes a third argument (`currentSnapshot`); test helpers must pass it. Material colour tweaks go through `mat.*-overrides` mixins; the toolbar passes its text colour to text buttons, so use `mat.toolbar-overrides`.
 - Angular reactive forms: a server error set with `setErrors` is cleared by the next validation run (value change or first render). Component tests must render before submitting.
@@ -71,4 +73,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-004/T-005/T-050/T-051/T-058/T-059 whenever.
-2. Phase 4e: list the requirement IDs (BOOK-1, BOOK-3, BOOK-5, BOOK-6, §7 `/book/:roomId`, My bookings) and the files to touch. `GET /bookings/my?scope=upcoming|past` doesn't exist yet; add it with the page. SRS §9 wants a Vitest spec for the stepper's form validation. Send a new `Idempotency-Key` per booking attempt, reused on retry of the same attempt.
+2. Phase 5a: list the requirement IDs (BO-1, BO-2 and the related §6 rows) and the files to touch. Use `Paged<T>` for `GET /bookings`; search on reference and guest name; CSV export with the same filters. The walk-in form ("New walk-in" button) can call the existing `POST /bookings` with `guestId`/`newGuest`.
