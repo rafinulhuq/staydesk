@@ -60,3 +60,12 @@ public sealed class GuestSearchRequestValidator : AbstractValidator<GuestSearchR
             .WithMessage("Type at least 2 characters.").MaximumLength(100);
     }
 }
+
+// BO-2: max 2,000 characters, the column length.
+public sealed class UpdateNotesRequestValidator : AbstractValidator<UpdateNotesRequest>
+{
+    public UpdateNotesRequestValidator()
+    {
+        RuleFor(r => r.InternalNotes).MaximumLength(2000);
+    }
+}

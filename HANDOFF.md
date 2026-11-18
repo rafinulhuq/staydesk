@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-18 12:10 +06
+**Last updated:** 2026-11-18 13:00 +06
 
 ## Where things stand
 
-- **Phase:** 5a done (back-office bookings table and CSV export, without the walk-in button: T-064). **Next: 5b**: booking detail page `/admin/bookings/:id` with status actions (check in, check out, cancel with fee waiver, no-show) and internal notes (BO-2).
+- **Phase:** 5b done (booking detail page with status actions, fee waiver and internal notes; walk-in dialog with guest lookup from T-064). **Next: 5c**: audit `SaveChangesInterceptor` (AUD-*), `GET /bookings/{id}/history` (BO-4) with the timeline on the detail page, and the Admin audit log page `/admin/audit`.
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059, T-063.
@@ -76,4 +76,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-004/T-005/T-028/T-032/T-037/T-050/T-051/T-058/T-059/T-063 whenever. Quick fixes that can go in before or with 5a: T-036 (room-number 23505 → 400), T-026 (coverage threshold).
-2. Phase 5b: list BO-2 and the §6 rows (`/check-in`, `/check-out`, `/no-show`, `PATCH /notes`, `/cancel` with `waiveFee`). Notes are max 2,000 chars and Staff-only; `Booking.InternalNotes` already exists, so no migration should be needed. The read-only drawer (`admin/bookings/booking-drawer.ts`) can link to the new detail page. The history timeline (BO-4) needs the audit interceptor from 5c.
+2. Phase 5c: list AUD-1..n, BO-4 and the §6/§7 audit rows. The interceptor lives in Infrastructure, appends only, never records secrets (no password hashes, tokens), uses GUID v7 and the CorrelationId. Wire the expiry job's `system` entry (T-057). The timeline goes on `admin/bookings/booking-detail-page`.

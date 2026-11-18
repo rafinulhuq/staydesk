@@ -1,0 +1,134 @@
+<a mat-button routerLink="/admin/bookings">{{ 'admin.common.backToList' | translate }}</a>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('notFound') {
+    <p class="state">{{ 'book.confirmation.notFound' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'book.confirmation.loadFailed' | translate }}
+      <button mat-button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </p>
+  }
+  @default {
+    @if (booking(); as b) {
+      <div class="page-header">
+        <h1>{{ b.reference }}</h1>
+        <span class="sd-booking-status" [attr.data-status]="b.status">{{
+          'bookingStatus.' + b.status | translate
+        }}</span>
+      </div>
+
+      <section class="actions-bar" [attr.aria-label]="'admin.common.actions' | translate">
+        @if (canCheckIn()) {
+          <button mat-flat-button type="button" [disabled]="busy()" (click)="checkIn()">
+            {{ 'admin.booking.checkIn' | translate }}
+          </button>
+        }
+        @if (canCheckOut()) {
+          <button mat-flat-button type="button" [disabled]="busy()" (click)="checkOut()">
+            {{ 'admin.booking.checkOut' | translate }}
+          </button>
+        }
+        @if (canMarkNoShow()) {
+          <button mat-stroked-button type="button" [disabled]="busy()" (click)="markNoShow(b)">
+            {{ 'admin.booking.markNoShow' | translate }}
+          </button>
+        }
+        @if (canCancel()) {
+          <button mat-stroked-button type="button" [disabled]="busy()" (click)="cancel(b)">
+            {{ 'account.bookings.cancel' | translate }}
+          </button>
+          @if (b.status === 'Confirmed') {
+            <mat-checkbox [checked]="waiveFee()" (change)="waiveFee.set($event.checked)">
+              {{ 'admin.booking.waiveFee' | translate }}
+            </mat-checkbox>
+          }
+        }
+        @if (!canCheckIn() && !canCheckOut() && !canCancel()) {
+          <p class="hint">{{ 'admin.booking.noActions' | translate }}</p>
+        }
+      </section>
+      @if (notice(); as n) {
+        <p class="state-error" role="alert">{{ 'admin.booking.notice.' + n | translate }}</p>
+      }
+
+      <div class="columns">
+        <dl class="facts">
+          <dt>{{ 'admin.bookings.fields.guest' | translate }}</dt>
+          <dd>
+            {{ b.guestFullName }}<br />{{ b.guestEmail }}
+            @if (b.guestPhone) {
+              <br />{{ b.guestPhone }}
+            }
+          </dd>
+          <dt>{{ 'admin.bookings.fields.room' | translate }}</dt>
+          <dd>
+            {{ b.propertyName }}, {{ 'search.card.room' | translate: { number: b.roomNumber } }}
+          </dd>
+          <dt>{{ 'book.dates' | translate }}</dt>
+          <dd>{{ b.checkIn | localDate }} – {{ b.checkOut | localDate }}</dd>
+          <dt>{{ 'search.fields.guests' | translate }}</dt>
+          <dd>{{ b.guests }}</dd>
+          @if (b.specialRequests) {
+            <dt>{{ 'book.fields.specialRequests' | translate }}</dt>
+            <dd>{{ b.specialRequests }}</dd>
+          }
+          <dt>{{ 'admin.booking.created' | translate }}</dt>
+          <dd>{{ b.createdAt | localDate: 'short' }}</dd>
+          @if (b.expiresAt && b.status === 'Pending') {
+            <dt>{{ 'admin.booking.holdUntil' | translate }}</dt>
+            <dd>{{ b.expiresAt | localDate: 'short' }}</dd>
+          }
+          @if (b.confirmedAt) {
+            <dt>{{ 'bookingStatus.Confirmed' | translate }}</dt>
+            <dd>{{ b.confirmedAt | localDate: 'short' }}</dd>
+          }
+          @if (b.checkedInAt) {
+            <dt>{{ 'bookingStatus.CheckedIn' | translate }}</dt>
+            <dd>{{ b.checkedInAt | localDate: 'short' }}</dd>
+          }
+          @if (b.checkedOutAt) {
+            <dt>{{ 'bookingStatus.CheckedOut' | translate }}</dt>
+            <dd>{{ b.checkedOutAt | localDate: 'short' }}</dd>
+          }
+          @if (b.cancelledAt) {
+            <dt>{{ 'bookingStatus.Cancelled' | translate }}</dt>
+            <dd>{{ b.cancelledAt | localDate: 'short' }}</dd>
+          }
+          @if (b.cancellationFee !== null) {
+            <dt>{{ 'admin.bookings.fields.cancellationFee' | translate }}</dt>
+            <dd>
+              {{ b.cancellationFee | eur }}
+              @if (b.feeWaived) {
+                ({{ 'admin.bookings.fields.feeWaived' | translate }})
+              }
+            </dd>
+          }
+          @if (b.refundAmount !== null) {
+            <dt>{{ 'admin.booking.refund' | translate }}</dt>
+            <dd>{{ b.refundAmount | eur }}</dd>
+          }
+        </dl>
+        <sd-booking-nights [booking]="b" />
+      </div>
+
+      <form class="notes" (submit)="$event.preventDefault(); saveNotes()">
+        <mat-form-field>
+          <mat-label>{{ 'admin.booking.notes' | translate }}</mat-label>
+          <textarea matInput rows="4" [formControl]="notes"></textarea>
+          <mat-hint align="end">{{ notes.value.length }} / {{ maxNotesLength }}</mat-hint>
+          <mat-error>{{
+            'admin.booking.notesTooLong' | translate: { max: maxNotesLength }
+          }}</mat-error>
+        </mat-form-field>
+        <button mat-stroked-button type="submit" [disabled]="busy() || notes.pristine">
+          {{ 'admin.common.save' | translate }}
+        </button>
+      </form>
+    }
+  }
+}

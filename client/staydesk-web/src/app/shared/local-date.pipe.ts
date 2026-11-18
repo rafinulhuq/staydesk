@@ -8,7 +8,8 @@ import { LanguageService } from '../core/i18n/language.service';
 export class LocalDatePipe implements PipeTransform {
   private readonly language = inject(LanguageService);
 
-  transform(value: string): string {
-    return formatDate(value, 'mediumDate', this.language.locale());
+  // 'short' adds the time, for timestamps such as when a guest checked in.
+  transform(value: string, format: 'mediumDate' | 'short' = 'mediumDate'): string {
+    return formatDate(value, format, this.language.locale());
   }
 }

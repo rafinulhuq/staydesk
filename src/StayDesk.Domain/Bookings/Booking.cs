@@ -216,6 +216,10 @@ public class Booking
         CancellationFee = PriceBreakdown[0].Price;
     }
 
+    // BO-2: staff-only text, any status. Blank clears it; the length limit is validated in Application.
+    public void UpdateInternalNotes(string? notes) =>
+        InternalNotes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+
     private void EnsureStatus(string action, params BookingStatus[] allowed)
     {
         if (!allowed.Contains(Status))

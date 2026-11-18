@@ -1,16 +1,26 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { BookingService } from '../../account/booking.service';
 import { BookingDetail } from '../../shared/booking.models';
 import { EurPipe } from '../../shared/eur.pipe';
 import { LocalDatePipe } from '../../shared/local-date.pipe';
+import { BookingNights } from './booking-nights';
 
-// Row click on the bookings table (SRS §7): read-only. Status actions and notes are 5b.
+// Row click on the bookings table (SRS §7): read-only; actions and notes are on the detail page.
 @Component({
   selector: 'sd-booking-drawer',
-  imports: [MatButtonModule, MatDialogModule, TranslatePipe, EurPipe, LocalDatePipe],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatDialogModule,
+    TranslatePipe,
+    EurPipe,
+    LocalDatePipe,
+    BookingNights,
+  ],
   template: `
     <h2 mat-dialog-title>{{ booking()?.reference ?? ('common.loading' | translate) }}</h2>
     <mat-dialog-content>
@@ -63,25 +73,16 @@ import { LocalDatePipe } from '../../shared/local-date.pipe';
                 </dd>
               }
             </dl>
-            <h3>{{ 'admin.bookings.fields.priceBreakdown' | translate }}</h3>
-            <table class="nights">
-              @for (night of b.priceBreakdown; track night.date) {
-                <tr>
-                  <td>{{ night.date | localDate }}</td>
-                  <td class="amount">{{ night.price | eur }}</td>
-                </tr>
-              }
-              <tr class="total">
-                <td>{{ 'book.total' | translate }}</td>
-                <td class="amount">{{ b.totalPrice | eur }}</td>
-              </tr>
-            </table>
+            <sd-booking-nights [booking]="b" />
           }
         }
       }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close type="button">{{ 'common.close' | translate }}</button>
+      <a mat-flat-button mat-dialog-close [routerLink]="['/admin/bookings', id]">
+        {{ 'admin.bookings.openDetail' | translate }}
+      </a>
     </mat-dialog-actions>
   `,
   styles: `
@@ -106,20 +107,6 @@ import { LocalDatePipe } from '../../shared/local-date.pipe';
     dd {
       margin: 0;
     }
-    .nights {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .nights td {
-      padding-block: calc(var(--sd-space) / 2);
-    }
-    .amount {
-      text-align: end;
-    }
-    .total td {
-      border-top: 1px solid var(--mat-sys-outline-variant);
-      font-weight: 500;
-    }
     .state-error {
       color: var(--mat-sys-error);
     }
@@ -128,7 +115,7 @@ import { LocalDatePipe } from '../../shared/local-date.pipe';
 })
 export class BookingDrawer {
   private readonly bookings = inject(BookingService);
-  private readonly id = inject<string>(MAT_DIALOG_DATA);
+  readonly id = inject<string>(MAT_DIALOG_DATA);
 
   readonly booking = signal<BookingDetail | null>(null);
   readonly state = signal<'loading' | 'loaded' | 'error'>('loading');

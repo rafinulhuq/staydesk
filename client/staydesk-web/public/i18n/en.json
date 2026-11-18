@@ -294,7 +294,8 @@
         "priceBreakdown": "Price per night",
         "cancellationFee": "Cancellation fee",
         "feeWaived": "waived"
-      }
+      },
+      "openDetail": "Open booking"
     },
     "walkIn": {
       "new": "New walk-in",
@@ -314,6 +315,27 @@
       "notice": {
         "priceChanged": "The price for this stay changed to {{total}}. Check it and book again.",
         "invalidDates": "These dates can't be booked. Check-in can't be in the past, and a stay is 1 to 30 nights."
+      }
+    },
+    "booking": {
+      "checkIn": "Check in",
+      "checkOut": "Check out",
+      "markNoShow": "Mark as no-show",
+      "waiveFee": "Waive the cancellation fee",
+      "noActions": "No further status changes for this booking.",
+      "noShowTitle": "Mark {{reference}} as no-show?",
+      "noShowMessage": "The guest didn't arrive. The first night ({{fee}}) is charged.",
+      "cancelWaived": "The fee is waived, so the full {{refund}} will be refunded.",
+      "created": "Booked",
+      "holdUntil": "Held until",
+      "refund": "Refund",
+      "notes": "Internal notes (staff only)",
+      "notesTooLong": "At most {{max}} characters.",
+      "notesSaved": "Notes saved.",
+      "notice": {
+        "notAllowed": "Not possible for this booking today. Check-in runs from the arrival day to the last night; no-show from the day after arrival.",
+        "changedElsewhere": "Someone else changed this booking first. The page now shows their version.",
+        "failed": "That didn't work. Try again."
       }
     }
   },

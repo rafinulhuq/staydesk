@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from '../core/auth/role.guard';
 import { AdminLayout } from './admin-layout';
+import { BookingDetailPage } from './bookings/booking-detail-page';
 import { BookingsPage } from './bookings/bookings-page';
 import { DashboardPage } from './dashboard-page';
 import { PropertiesPage } from './inventory/properties-page';
@@ -18,6 +19,7 @@ export const adminRoutes: Routes = [
     children: [
       { path: '', component: DashboardPage },
       { path: 'bookings', component: BookingsPage, providers: [provideLocalizedDateAdapter()] },
+      { path: 'bookings/:id', component: BookingDetailPage },
       // Inventory and pricing are Admin-only (SRS §7); the area itself lets Staff in.
       {
         path: '',

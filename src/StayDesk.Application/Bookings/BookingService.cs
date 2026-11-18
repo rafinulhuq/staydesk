@@ -34,7 +34,7 @@ public sealed class BookingService(
         }
 
         // A retry of a booking that already went through needs no price check and no lock.
-        if (await FindRetryAsync(callerId, key, request, ct) is { } earlier)
+        if (await FindRetryAsync(callerId, isStaff, key, request, ct) is { } earlier)
         {
             return new BookingCreation(earlier, Created: false);
         }
@@ -64,7 +64,7 @@ public sealed class BookingService(
         await db.LockRoomAsync(priced.Room.Id, ct);
 
         // A double click's second request waited on the lock above; the first one has committed now.
-        if (await FindRetryAsync(callerId, key, request, ct) is { } committed)
+        if (await FindRetryAsync(callerId, isStaff, key, request, ct) is { } committed)
         {
             return new BookingCreation(committed, Created: false);
         }
@@ -113,7 +113,7 @@ public sealed class BookingService(
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
-        var detail = await LoadDetailAsync(booking.Id, ct) ?? throw NotFound();
+        var detail = await LoadDetailAsync(booking.Id, isStaff, ct) ?? throw NotFound();
         if (isStaff)
         {
             await emails.SendConfirmationAsync(detail, ct);
@@ -232,7 +232,7 @@ public sealed class BookingService(
         db.Payments.Add(new Payment(booking.Id, booking.TotalPrice, PaymentProvider.Mock, now));
         await db.SaveChangesAsync(ct);
 
-        var detail = await LoadDetailAsync(id, ct) ?? throw NotFound();
+        var detail = await LoadDetailAsync(id, includeInternalNotes: false, ct) ?? throw NotFound();
         await emails.SendConfirmationAsync(detail, ct);
         return detail;
     }
@@ -261,7 +261,30 @@ public sealed class BookingService(
             payment.MarkRefunded();
         }
         await db.SaveChangesAsync(ct);
-        return await LoadDetailAsync(id, ct) ?? throw NotFound();
+        return await LoadDetailAsync(id, isStaff, ct) ?? throw NotFound();
+    }
+
+    // BO-2 status actions, Staff only. "Today" is the date at the property (BOOK-4); the
+    // entity decides whether the change is allowed and throws InvalidStatusTransitionException.
+    public Task<BookingDetail> CheckInAsync(Guid id, CancellationToken ct) =>
+        ChangeAsStaffAsync(id, (booking, property, now) => booking.MarkCheckedIn(property.TodayAt(now), now), ct);
+
+    public Task<BookingDetail> CheckOutAsync(Guid id, CancellationToken ct) =>
+        ChangeAsStaffAsync(id, (booking, _, now) => booking.MarkCheckedOut(now), ct);
+
+    public Task<BookingDetail> MarkNoShowAsync(Guid id, CancellationToken ct) =>
+        ChangeAsStaffAsync(id, (booking, property, now) => booking.MarkNoShow(property.TodayAt(now)), ct);
+
+    public Task<BookingDetail> UpdateNotesAsync(Guid id, UpdateNotesRequest request, CancellationToken ct) =>
+        ChangeAsStaffAsync(id, (booking, _, _) => booking.UpdateInternalNotes(request.InternalNotes), ct);
+
+    // A change saved between this load and the save fails on the xmin token: 409, not lost.
+    private async Task<BookingDetail> ChangeAsStaffAsync(Guid id, Action<Booking, Property, DateTimeOffset> change, CancellationToken ct)
+    {
+        var booking = await db.Bookings.SingleOrDefaultAsync(b => b.Id == id, ct) ?? throw NotFound();
+        change(booking, await LoadPropertyAsync(booking, ct), time.GetUtcNow());
+        await db.SaveChangesAsync(ct);
+        return await LoadDetailAsync(id, includeInternalNotes: true, ct) ?? throw NotFound();
     }
 
     // BOOK-3 tidy-up, run by the expiry job every minute. Saves one hold at a time, so a hold
@@ -299,14 +322,14 @@ public sealed class BookingService(
     // BOOK-6: a guest asking for someone else's booking gets 404, so ids reveal nothing.
     public async Task<BookingDetail> GetAsync(Guid id, Guid userId, bool canSeeAll, CancellationToken ct)
     {
-        var booking = await LoadDetailAsync(id, ct);
+        var booking = await LoadDetailAsync(id, includeInternalNotes: canSeeAll, ct);
         return booking is not null && (canSeeAll || await IsGuestOfAsync(id, userId, ct)) ? booking : throw NotFound();
     }
 
     // BOOK-8: same key and same booking details returns the original; same key with different
     // details is a client bug, answered with 422. ExpectedTotal is not compared: it describes
     // what the guest saw, not what they booked. Keys are per creator, so for walk-ins per staff member.
-    private async Task<BookingDetail?> FindRetryAsync(Guid callerId, Guid key, CreateBookingRequest request, CancellationToken ct)
+    private async Task<BookingDetail?> FindRetryAsync(Guid callerId, bool isStaff, Guid key, CreateBookingRequest request, CancellationToken ct)
     {
         var earlier = await db.Bookings.AsNoTracking()
             .Where(b => b.CreatedById == callerId && b.IdempotencyKey == key)
@@ -334,7 +357,7 @@ public sealed class BookingService(
             throw new ProblemException(ProblemKind.Unprocessable, "idempotency_key_reused",
                 "This Idempotency-Key was already used for a different booking.");
         }
-        return await LoadDetailAsync(earlier.Id, ct);
+        return await LoadDetailAsync(earlier.Id, isStaff, ct);
     }
 
     // Tracked, for status changes. A guest can only change their own bookings; others get 404 (BOOK-6).
@@ -349,7 +372,7 @@ public sealed class BookingService(
         await db.Bookings.AnyAsync(b => b.Id == bookingId && b.GuestId == userId, ct);
 
     // Room and property are read past the soft-delete filter, so history survives deactivation (§5).
-    private async Task<BookingDetail?> LoadDetailAsync(Guid id, CancellationToken ct)
+    private async Task<BookingDetail?> LoadDetailAsync(Guid id, bool includeInternalNotes, CancellationToken ct)
     {
         var row = await (
             from b in db.Bookings.AsNoTracking()
@@ -371,7 +394,8 @@ public sealed class BookingService(
             [.. booking.PriceBreakdown.Select(n => new QuoteNight(
                 n.Date, n.BasePrice, [.. n.Rules.Select(r => new AppliedRuleSummary(r.Name, r.Type, r.PercentChange))], n.Price))],
             booking.CancellationFee, booking.RefundAmount, booking.FeeWaived,
-            booking.CreatedAt, booking.ExpiresAt, booking.ConfirmedAt, booking.CheckedInAt, booking.CheckedOutAt, booking.CancelledAt);
+            booking.CreatedAt, booking.ExpiresAt, booking.ConfirmedAt, booking.CheckedInAt, booking.CheckedOutAt, booking.CancelledAt,
+            includeInternalNotes ? booking.InternalNotes : null);
     }
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

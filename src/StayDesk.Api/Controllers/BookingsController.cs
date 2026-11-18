@@ -60,6 +60,24 @@ public sealed class BookingsController(BookingService bookings) : ControllerBase
     public async Task<BookingDetail> Cancel(Guid id, CancelBookingRequest request, CancellationToken ct) =>
         await bookings.CancelAsync(id, CurrentUserId, User.IsInRole(Roles.Staff), request, ct);
 
+    // BO-2.
+    [Authorize(Roles = Roles.Staff)]
+    [HttpPost("{id:guid}/check-in")]
+    public async Task<BookingDetail> CheckIn(Guid id, CancellationToken ct) => await bookings.CheckInAsync(id, ct);
+
+    [Authorize(Roles = Roles.Staff)]
+    [HttpPost("{id:guid}/check-out")]
+    public async Task<BookingDetail> CheckOut(Guid id, CancellationToken ct) => await bookings.CheckOutAsync(id, ct);
+
+    [Authorize(Roles = Roles.Staff)]
+    [HttpPost("{id:guid}/no-show")]
+    public async Task<BookingDetail> NoShow(Guid id, CancellationToken ct) => await bookings.MarkNoShowAsync(id, ct);
+
+    [Authorize(Roles = Roles.Staff)]
+    [HttpPatch("{id:guid}/notes")]
+    public async Task<BookingDetail> UpdateNotes(Guid id, UpdateNotesRequest request, CancellationToken ct) =>
+        await bookings.UpdateNotesAsync(id, request, ct);
+
     // [Authorize] guarantees an authenticated principal, and every access token is issued with `sub`.
     private Guid CurrentUserId => Guid.Parse(User.FindFirstValue("sub")!);
 }

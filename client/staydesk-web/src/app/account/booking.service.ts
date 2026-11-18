@@ -37,7 +37,25 @@ export class BookingService {
     return this.http.get<CancellationQuote>(`/api/v1/bookings/${id}/cancellation-quote`);
   }
 
-  cancel(id: string): Observable<BookingDetail> {
-    return this.http.post<BookingDetail>(`/api/v1/bookings/${id}/cancel`, { waiveFee: false });
+  // waiveFee: staff only (BOOK-5).
+  cancel(id: string, waiveFee = false): Observable<BookingDetail> {
+    return this.http.post<BookingDetail>(`/api/v1/bookings/${id}/cancel`, { waiveFee });
+  }
+
+  // BO-2 staff actions.
+  checkIn(id: string): Observable<BookingDetail> {
+    return this.http.post<BookingDetail>(`/api/v1/bookings/${id}/check-in`, null);
+  }
+
+  checkOut(id: string): Observable<BookingDetail> {
+    return this.http.post<BookingDetail>(`/api/v1/bookings/${id}/check-out`, null);
+  }
+
+  markNoShow(id: string): Observable<BookingDetail> {
+    return this.http.post<BookingDetail>(`/api/v1/bookings/${id}/no-show`, null);
+  }
+
+  updateNotes(id: string, internalNotes: string): Observable<BookingDetail> {
+    return this.http.patch<BookingDetail>(`/api/v1/bookings/${id}/notes`, { internalNotes });
   }
 }

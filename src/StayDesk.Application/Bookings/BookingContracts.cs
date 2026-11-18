@@ -59,7 +59,9 @@ public sealed record BookingDetail(
     DateTimeOffset? ConfirmedAt,
     DateTimeOffset? CheckedInAt,
     DateTimeOffset? CheckedOutAt,
-    DateTimeOffset? CancelledAt);
+    DateTimeOffset? CancelledAt,
+    // BO-2: staff only; always null in a guest's response.
+    string? InternalNotes);
 
 public enum MyBookingsScope
 {
@@ -106,6 +108,9 @@ public sealed class BookingListRequest
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 20;
 }
+
+// BO-2.
+public sealed record UpdateNotesRequest(string? InternalNotes);
 
 // BOOK-5: waiveFee is for Staff and Admin only.
 public sealed record CancelBookingRequest(bool WaiveFee);

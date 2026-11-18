@@ -61,6 +61,8 @@ export interface BookingDetail {
   checkedInAt: string | null;
   checkedOutAt: string | null;
   cancelledAt: string | null;
+  // BO-2: staff only; always null for guests.
+  internalNotes: string | null;
 }
 
 export type MyBookingsScope = 'Upcoming' | 'Past';
