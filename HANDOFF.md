@@ -9,7 +9,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - **Phase:** 5a done (back-office bookings table and CSV export, without the walk-in button: T-064). **Next: 5b**: booking detail page `/admin/bookings/:id` with status actions (check in, check out, cancel with fee waiver, no-show) and internal notes (BO-2).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
-- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059, T-063, T-064.
+- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059, T-063.
 - **Interview notes:** `notes/interview-prep.md` (git-ignored, local only). Append 2–3 talking points there at the end of every sub-feature.
 
 ## Files and what each one is for
@@ -59,6 +59,8 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - Confirmation emails: Mailpit UI at http://localhost:8025, API `GET /api/v1/messages`. Under `dotnet test` nothing listens on SMTP, so sends fail fast and are only logged (BOOK-7).
 - Scripted browser checks: `scratchpad/shot.sh` logs in per shot; each login and each page load's `/auth/refresh` count against the 10/min auth limit (T-042). Wait for a non-429 from `/auth/login` between batches.
 - `BookingSummary` is shared by My bookings and the back-office list. EF can't sort on a record built through its constructor, so `BookingService.BackOfficeQuery` sorts the anonymous join row first and projects last.
+- `MatDialog.open` uses the root injector, so a dialog can't see providers declared on a route (e.g. the date adapter from `provideLocalizedDateAdapter`). Pass `injector` in the dialog config (see `BookingsPage.newWalkIn`).
+- A `<form>` without `[formGroup]`/`ngForm` never emits `ngSubmit`; the browser submits natively and reloads the page. Use `(submit)` with `preventDefault()`, and click the real submit button in specs.
 - Material components that use ligature icons (stepper, some expansion/chip parts) show raw text such as "done", because the Material Icons font isn't loaded (T-062).
 - Never `pkill -f "<pattern>"` through `flatpak-spawn`: the pattern matches the spawn command itself and kills the agent shell. Use `pgrep -af` to find the PID, then `kill <pid>`.
 - Angular 22: `CanMatchFn` takes a third argument (`currentSnapshot`); test helpers must pass it. Material colour tweaks go through `mat.*-overrides` mixins; the toolbar passes its text colour to text buttons, so use `mat.toolbar-overrides`.
@@ -75,4 +77,3 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 1. Owner decides T-004/T-005/T-028/T-032/T-037/T-050/T-051/T-058/T-059/T-063 whenever. Quick fixes that can go in before or with 5a: T-036 (room-number 23505 → 400), T-026 (coverage threshold).
 2. Phase 5b: list BO-2 and the §6 rows (`/check-in`, `/check-out`, `/no-show`, `PATCH /notes`, `/cancel` with `waiveFee`). Notes are max 2,000 chars and Staff-only; `Booking.InternalNotes` already exists, so no migration should be needed. The read-only drawer (`admin/bookings/booking-drawer.ts`) can link to the new detail page. The history timeline (BO-4) needs the audit interceptor from 5c.
-3. T-064 decides how the walk-in form finds an existing guest.

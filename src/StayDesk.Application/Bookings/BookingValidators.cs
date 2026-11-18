@@ -50,3 +50,13 @@ public sealed class BookingListRequestValidator : AbstractValidator<BookingListR
         RuleFor(r => r.PageSize).InclusiveBetween(1, Paged<BookingSummary>.MaxPageSize);
     }
 }
+
+// Two characters at least, so one keystroke doesn't list every guest.
+public sealed class GuestSearchRequestValidator : AbstractValidator<GuestSearchRequest>
+{
+    public GuestSearchRequestValidator()
+    {
+        RuleFor(r => r.Search).NotEmpty().Must(s => s.Trim().Length >= 2)
+            .WithMessage("Type at least 2 characters.").MaximumLength(100);
+    }
+}

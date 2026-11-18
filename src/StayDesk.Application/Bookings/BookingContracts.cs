@@ -24,6 +24,16 @@ public sealed record CreateBookingRequest(
 // BOOK-9: creates a Guest account without a password (no login until one is set).
 public sealed record NewGuest(string FirstName, string LastName, string Email, string? Phone);
 
+// BOOK-9: staff look up the existing guest a walk-in is for (GET /guests).
+public sealed class GuestSearchRequest
+{
+    public const int MaxResults = 20;
+
+    public string Search { get; init; } = "";
+}
+
+public sealed record GuestSummary(Guid Id, string FirstName, string LastName, string Email, string? Phone);
+
 public sealed record BookingDetail(
     Guid Id,
     string Reference,

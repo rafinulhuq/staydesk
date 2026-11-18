@@ -1,14 +1,16 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using StayDesk.Application.Auth;
 using StayDesk.Application.Bookings;
+using StayDesk.Infrastructure.Persistence;
 
 namespace StayDesk.Infrastructure.Identity;
 
 // UserManager shares the scoped StayDeskDbContext, so its saves run inside the booking
 // transaction that BookingService opened.
-public class GuestAccounts(UserManager<User> users) : IGuestAccounts
+public class GuestAccounts(UserManager<User> users, StayDeskDbContext db) : IGuestAccounts
 {
     public async Task<bool> IsActiveGuestAsync(Guid userId, CancellationToken ct) =>
         await users.FindByIdAsync(userId.ToString()) is { IsActive: true } user && await users.IsInRoleAsync(user, Roles.Guest);
@@ -32,6 +34,21 @@ public class GuestAccounts(UserManager<User> users) : IGuestAccounts
         Check(await users.CreateAsync(user));
         Check(await users.AddToRoleAsync(user, Roles.Guest));
         return user.Id;
+    }
+
+    // UserManager has no role filter that stays in SQL, so the role check is a subquery on the
+    // Identity tables. Accounts always get an email (registration and walk-ins require one).
+    public async Task<IReadOnlyList<GuestSummary>> SearchAsync(string search, CancellationToken ct)
+    {
+        var term = search.Trim().ToLower();
+        return await db.Users.AsNoTracking()
+            .Where(u => u.IsActive && u.PseudonymisedAt == null)
+            .Where(u => db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == Roles.Guest)))
+            .Where(u => (u.FirstName + " " + u.LastName).ToLower().Contains(term) || (u.Email != null && u.Email.ToLower().Contains(term)))
+            .OrderBy(u => u.LastName).ThenBy(u => u.FirstName).ThenBy(u => u.Email)
+            .Take(GuestSearchRequest.MaxResults)
+            .Select(u => new GuestSummary(u.Id, u.FirstName, u.LastName, u.Email ?? "", u.PhoneNumber))
+            .ToListAsync(ct);
     }
 
     // Identity reports problems such as a duplicate email (two walk-ins racing) as results, not exceptions.

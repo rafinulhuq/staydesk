@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Paged } from '../../public/catalog.models';
-import { BookingListQuery, BookingSummary } from '../../shared/booking.models';
+import { BookingListQuery, BookingSummary, GuestSummary } from '../../shared/booking.models';
 
 export const bookingListPageSize = 20;
 
@@ -21,6 +21,11 @@ export class BookingListService {
       params: filterParams(query),
       responseType: 'blob',
     });
+  }
+
+  // BOOK-9: the existing guest a walk-in is for.
+  searchGuests(search: string): Observable<GuestSummary[]> {
+    return this.http.get<GuestSummary[]>('/api/v1/guests', { params: { search } });
   }
 }
 

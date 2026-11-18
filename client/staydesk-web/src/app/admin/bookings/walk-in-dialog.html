@@ -1,0 +1,163 @@
+<h2 mat-dialog-title>{{ 'admin.walkIn.title' | translate }}</h2>
+<mat-dialog-content>
+  <!-- No [formGroup] on the form itself (the guest and stay groups are separate), so it
+       handles the native submit event; ngSubmit would never fire. -->
+  <form id="walk-in" class="walk-in" (submit)="$event.preventDefault(); submit()">
+    <mat-button-toggle-group
+      class="full-width"
+      hideSingleSelectionIndicator
+      [value]="guestMode()"
+      (change)="guestMode.set($event.value)"
+      [attr.aria-label]="'admin.walkIn.guest' | translate"
+    >
+      <mat-button-toggle value="existing">{{
+        'admin.walkIn.existingGuest' | translate
+      }}</mat-button-toggle>
+      <mat-button-toggle value="new">{{ 'admin.walkIn.newGuest' | translate }}</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (guestMode() === 'existing') {
+      <mat-form-field class="full-width">
+        <mat-label>{{ 'admin.walkIn.findGuest' | translate }}</mat-label>
+        <input matInput type="search" [formControl]="guestSearch" [matAutocomplete]="guestList" />
+        <mat-autocomplete #guestList (optionSelected)="chooseGuest($event.option.value)">
+          @for (guest of guestMatches() ?? []; track guest.id) {
+            <mat-option [value]="guest">{{ guestLabel(guest) }}, {{ guest.email }}</mat-option>
+          }
+        </mat-autocomplete>
+        @if (guestMatches()?.length === 0) {
+          <mat-hint>{{ 'admin.walkIn.noGuests' | translate }}</mat-hint>
+        }
+        @if (guestSearch.touched && !selectedGuest()) {
+          <mat-error>{{ 'admin.walkIn.chooseGuest' | translate }}</mat-error>
+        }
+      </mat-form-field>
+    } @else {
+      <ng-container [formGroup]="newGuest">
+        <mat-form-field>
+          <mat-label>{{ 'admin.walkIn.fields.firstName' | translate }}</mat-label>
+          <input matInput formControlName="firstName" autocomplete="off" />
+          <mat-error>{{
+            newGuest.controls.firstName.getError('server') ?? ('validation.required' | translate)
+          }}</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>{{ 'admin.walkIn.fields.lastName' | translate }}</mat-label>
+          <input matInput formControlName="lastName" autocomplete="off" />
+          <mat-error>{{
+            newGuest.controls.lastName.getError('server') ?? ('validation.required' | translate)
+          }}</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>{{ 'book.fields.email' | translate }}</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="off" />
+          <mat-error>{{
+            newGuest.controls.email.getError('server') ?? ('validation.email' | translate)
+          }}</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>{{ 'book.fields.phone' | translate }}</mat-label>
+          <input matInput type="tel" formControlName="phone" autocomplete="off" />
+        </mat-form-field>
+      </ng-container>
+    }
+
+    <ng-container [formGroup]="stay">
+      <mat-form-field>
+        <mat-label>{{ 'admin.bookings.filters.property' | translate }}</mat-label>
+        <mat-select formControlName="propertyId">
+          @for (property of properties(); track property.id) {
+            <mat-option [value]="property.id">{{ property.name }}, {{ property.city }}</mat-option>
+          }
+        </mat-select>
+        <mat-error>{{ 'validation.required' | translate }}</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>{{ 'admin.bookings.fields.room' | translate }}</mat-label>
+        <mat-select formControlName="roomId">
+          @for (room of rooms(); track room.id) {
+            <mat-option [value]="room.id">
+              {{ room.roomNumber }} · {{ 'roomTypes.' + room.type | translate }}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-error>{{
+          stay.controls.roomId.getError('server') ?? ('validation.required' | translate)
+        }}</mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>{{ 'book.dates' | translate }}</mat-label>
+        <mat-date-range-input [rangePicker]="picker" [min]="today">
+          <input
+            matStartDate
+            formControlName="checkIn"
+            [placeholder]="'search.fields.checkIn' | translate"
+          />
+          <input
+            matEndDate
+            formControlName="checkOut"
+            [placeholder]="'search.fields.checkOut' | translate"
+          />
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-date-range-picker #picker />
+        @if (stay.controls.checkIn.hasError('server')) {
+          <mat-error>{{ stay.controls.checkIn.getError('server') }}</mat-error>
+        } @else if (stay.controls.checkOut.hasError('server')) {
+          <mat-error>{{ stay.controls.checkOut.getError('server') }}</mat-error>
+        } @else {
+          <mat-error>{{ 'validation.required' | translate }}</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>{{ 'search.fields.guests' | translate }}</mat-label>
+        <input matInput type="number" min="1" [max]="maxGuests()" formControlName="guests" />
+        <mat-hint>{{ 'book.guestsRange' | translate: { max: maxGuests() } }}</mat-hint>
+        <mat-error>{{
+          stay.controls.guests.getError('server') ??
+            ('book.guestsRange' | translate: { max: maxGuests() })
+        }}</mat-error>
+      </mat-form-field>
+    </ng-container>
+
+    <mat-form-field class="full-width">
+      <mat-label>{{ 'book.fields.specialRequests' | translate }}</mat-label>
+      <textarea matInput rows="2" [formControl]="specialRequests"></textarea>
+    </mat-form-field>
+  </form>
+
+  @if (quote(); as q) {
+    <p class="quote">
+      <strong>{{ q.total | eur }}</strong>
+      {{
+        'search.card.forNights.' + plural(q.nights.length) | translate: { count: q.nights.length }
+      }}
+    </p>
+  }
+  @if (notice(); as n) {
+    <p class="notice" role="alert">
+      @switch (n) {
+        @case ('priceChanged') {
+          {{
+            'admin.walkIn.notice.priceChanged' | translate: { total: (quote()?.total ?? 0 | eur) }
+          }}
+        }
+        @case ('roomUnavailable') {
+          {{ 'book.notice.roomUnavailable' | translate }}
+        }
+        @case ('invalidDates') {
+          {{ 'admin.walkIn.notice.invalidDates' | translate }}
+        }
+        @default {
+          {{ 'book.notice.failed' | translate }}
+        }
+      }
+    </p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">{{ 'common.cancel' | translate }}</button>
+  <button mat-flat-button type="submit" form="walk-in" [disabled]="busy()">
+    {{ 'admin.walkIn.submit' | translate }}
+  </button>
+</mat-dialog-actions>

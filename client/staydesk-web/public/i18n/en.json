@@ -295,6 +295,26 @@
         "cancellationFee": "Cancellation fee",
         "feeWaived": "waived"
       }
+    },
+    "walkIn": {
+      "new": "New walk-in",
+      "title": "New walk-in booking",
+      "guest": "Guest",
+      "existingGuest": "Existing guest",
+      "newGuest": "New guest",
+      "findGuest": "Find guest by name or email",
+      "noGuests": "No guest found. Switch to New guest to add one.",
+      "chooseGuest": "Choose a guest from the list.",
+      "fields": {
+        "firstName": "First name",
+        "lastName": "Last name"
+      },
+      "submit": "Book and confirm",
+      "created": "{{reference}} is booked and confirmed.",
+      "notice": {
+        "priceChanged": "The price for this stay changed to {{total}}. Check it and book again.",
+        "invalidDates": "These dates can't be booked. Check-in can't be in the past, and a stay is 1 to 30 nights."
+      }
     }
   },
   "auth": {

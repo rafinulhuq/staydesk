@@ -8,6 +8,9 @@
   >
     {{ 'admin.bookings.export' | translate }}
   </button>
+  <button mat-flat-button type="button" (click)="newWalkIn()">
+    {{ 'admin.walkIn.new' | translate }}
+  </button>
 </div>
 
 @if (exportState() === 'tooMany' || exportState() === 'failed') {

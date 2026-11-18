@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  Injector,
   computed,
   inject,
   signal,
@@ -15,10 +16,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, ParamMap, Params, Router } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subscription, debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { Paged } from '../../public/catalog.models';
 import { CatalogService } from '../../public/catalog.service';
@@ -36,6 +38,7 @@ import { LocalDatePipe } from '../../shared/local-date.pipe';
 import { plural } from '../../shared/plural';
 import { BookingDrawer } from './booking-drawer';
 import { BookingListService } from './booking-list.service';
+import { WalkInDialog } from './walk-in-dialog';
 
 // Table column ids that sort, and the API sort each one asks for.
 const sortColumns: Record<string, BookingListSort> = {
@@ -96,6 +99,9 @@ export class BookingsPage {
   readonly plural = plural;
   private readonly bookings = inject(BookingListService);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly injector = inject(Injector);
+  private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -198,6 +204,30 @@ export class BookingsPage {
       maxWidth: '100vw',
       autoFocus: 'dialog',
     });
+  }
+
+  // BOOK-9. The list reloads, so the new Confirmed booking shows if it matches the filters.
+  newWalkIn(): void {
+    this.dialog
+      // A dialog uses the root injector unless told otherwise; this one needs the route's
+      // DateAdapter (provideLocalizedDateAdapter in admin.routes.ts).
+      .open(WalkInDialog, {
+        width: '640px',
+        maxWidth: '100vw',
+        autoFocus: 'first-tabbable',
+        injector: this.injector,
+      })
+      .afterClosed()
+      .subscribe((booking) => {
+        if (booking) {
+          this.snackBar.open(
+            this.translate.instant('admin.walkIn.created', { reference: booking.reference }),
+            this.translate.instant('common.close'),
+            { duration: 6000 },
+          );
+          this.load();
+        }
+      });
   }
 
   export(): void {

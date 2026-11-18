@@ -295,6 +295,26 @@
         "cancellationFee": "Stornogebühr",
         "feeWaived": "erlassen"
       }
+    },
+    "walkIn": {
+      "new": "Neue Walk-in-Buchung",
+      "title": "Neue Walk-in-Buchung",
+      "guest": "Gast",
+      "existingGuest": "Bestehender Gast",
+      "newGuest": "Neuer Gast",
+      "findGuest": "Gast nach Name oder E-Mail suchen",
+      "noGuests": "Kein Gast gefunden. Wählen Sie „Neuer Gast“, um ihn anzulegen.",
+      "chooseGuest": "Wählen Sie einen Gast aus der Liste.",
+      "fields": {
+        "firstName": "Vorname",
+        "lastName": "Nachname"
+      },
+      "submit": "Buchen und bestätigen",
+      "created": "{{reference}} ist gebucht und bestätigt.",
+      "notice": {
+        "priceChanged": "Der Preis für diesen Aufenthalt hat sich auf {{total}} geändert. Bitte prüfen und erneut buchen.",
+        "invalidDates": "Diese Daten sind nicht buchbar. Die Anreise darf nicht in der Vergangenheit liegen, ein Aufenthalt dauert 1 bis 30 Nächte."
+      }
     }
   },
   "auth": {

@@ -228,6 +228,7 @@ The system has 9 modules. Every requirement has an ID so tests and commits can r
   - Walk-in bookings skip Pending: they are created as **Confirmed**, with a Payment `Provider = "Desk"`.
   - Check-in today is allowed.
   - `CreatedById` records the staff user.
+  - Staff find an existing guest by name or email (`GET /guests`: active, not pseudonymised Guests, at most 20, at least 2 characters).
 
 ### 4.6 Back-office bookings (BO)
 
@@ -325,6 +326,7 @@ All endpoints live under `/api/v1`, return JSON, and use RFC 9457 Problem Detail
 | POST | /pricing/quote | Public | Per-night price breakdown for room + dates |
 | POST | /pricing/preview | Admin | Quote with an unsaved rule added (PRICE-8) |
 | GET / POST / PUT / DELETE | /price-rules, /price-rules/{id} | Admin | Manage price rules (DELETE = deactivate) |
+| GET | /guests?search | Staff, Admin | Find an existing guest for a walk-in (BOOK-9) |
 | POST | /bookings | Guest, Staff, Admin | Create booking (`Idempotency-Key` header required; staff body includes `guestId` or `newGuest`) |
 | GET | /bookings/my | Guest | Own bookings (`?scope=upcoming\|past`) |
 | GET | /bookings?propertyId&status&from&to&search&sort&dir&page&pageSize | Staff, Admin | Back-office list |
@@ -656,6 +658,7 @@ Start now with 1a.
 | API | Added `/users/me`, `/users/{id}/status`, `/amenities`, `/pricing/preview`, `/bookings/{id}/history`, `/bookings/{id}/cancellation-quote`, `/no-show`, reactivate endpoints; error codes; 422/429 |
 | NFR | Rate limit scope + ForwardedHeaders, token redaction, load-seed performance, NFR-13 GDPR, OPS-1 nightly reset, OPS-2 migration bundle |
 | Build plan / prompt | Sub-features instead of whole phases; SRS lives in the repo; ask on high-impact ambiguity |
+| Rev 2.4 (T-064, 2026-11-18) | BOOK-9 and §6: `GET /guests?search` for Staff, so the walk-in form can pick an existing guest (`GET /users` is Admin-only) |
 | Rev 2.3 (phase 2a, 2026-11-17) | NFR-1 local-only defaults also cover a JWT signing key for the local stack; the deployed demo sets its own |
 | Rev 2.2 (phase 1c, 2026-11-16) | NFR-1 allows local-only committed defaults for the dev DB and public demo passwords so `docker compose up` needs no setup |
 | Rev 2.1 (phase 1b, 2026-11-16) | User: no global filter, unique NormalizedEmail, snake_case Identity tables; Room.ImageUrls stored as `text[]` (native Npgsql mapping) instead of `jsonb` |

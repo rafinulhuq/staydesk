@@ -15,6 +15,24 @@ export interface CreateBookingRequest {
   specialRequests: string | null;
   // PRICE-7: the total the guest saw; the API answers 409 price_changed if it moved.
   expectedTotal: number | null;
+  // Staff walk-ins only (BOOK-9): one of the two says who the booking is for.
+  guestId?: string;
+  newGuest?: NewGuest;
+}
+
+export interface NewGuest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+}
+
+export interface GuestSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
 }
 
 export interface BookingDetail {

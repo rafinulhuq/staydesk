@@ -38,11 +38,17 @@ describe('BookingsPage', () => {
   async function open(url: string): Promise<BookingsPage> {
     TestBed.configureTestingModule({
       providers: [
-        provideRouter([{ path: 'admin/bookings', component: BookingsPage }]),
+        // The date adapter is provided on the route, as in admin.routes.ts.
+        provideRouter([
+          {
+            path: 'admin/bookings',
+            component: BookingsPage,
+            providers: [provideNativeDateAdapter()],
+          },
+        ]),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideTranslateService(),
-        provideNativeDateAdapter(),
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -117,5 +123,16 @@ describe('BookingsPage', () => {
     expect(harness.fixture.nativeElement.textContent).toContain(
       'admin.bookings.exportErrors.tooMany',
     );
+  });
+
+  it('opens the walk-in form with the date adapter from the route', async () => {
+    const component = await open('/admin/bookings');
+    listRequest().flush(page([becker]));
+
+    component.newWalkIn();
+    await harness.fixture.whenStable();
+
+    expect(document.querySelector('sd-walk-in-dialog mat-date-range-input')).not.toBeNull();
+    http.expectOne('/api/v1/properties').flush([]);
   });
 });
