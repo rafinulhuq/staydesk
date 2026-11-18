@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from '../core/auth/role.guard';
 import { AdminLayout } from './admin-layout';
+import { AuditPage } from './audit/audit-page';
 import { BookingDetailPage } from './bookings/booking-detail-page';
 import { BookingsPage } from './bookings/bookings-page';
 import { DashboardPage } from './dashboard-page';
@@ -35,6 +36,7 @@ export const adminRoutes: Routes = [
           { path: 'pricing', component: PriceRulesPage },
           { path: 'pricing/new', component: PriceRuleFormPage },
           { path: 'pricing/:id', component: PriceRuleFormPage },
+          { path: 'audit', component: AuditPage },
         ],
       },
     ],

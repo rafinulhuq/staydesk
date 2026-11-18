@@ -1,0 +1,175 @@
+<div class="page-header">
+  <h1>{{ 'admin.audit.title' | translate }}</h1>
+</div>
+
+<div class="filters" role="search">
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>{{ 'admin.audit.entity' | translate }}</mat-label>
+    <mat-select [value]="query().entity" (selectionChange)="setEntity($event.value)">
+      <mat-option [value]="null">{{ 'admin.audit.anyEntity' | translate }}</mat-option>
+      @for (entity of entities; track entity) {
+        <mat-option [value]="entity">{{ 'auditEntity.' + entity | translate }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>{{ 'admin.audit.from' | translate }}</mat-label>
+    <input
+      matInput
+      [matDatepicker]="fromPicker"
+      [value]="fromDate()"
+      [max]="toDate()"
+      (dateChange)="setFrom($event.value)"
+    />
+    <mat-datepicker-toggle matIconSuffix [for]="fromPicker" />
+    <mat-datepicker #fromPicker />
+  </mat-form-field>
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>{{ 'admin.audit.to' | translate }}</mat-label>
+    <input
+      matInput
+      [matDatepicker]="toPicker"
+      [value]="toDate()"
+      [min]="fromDate()"
+      (dateChange)="setTo($event.value)"
+    />
+    <mat-datepicker-toggle matIconSuffix [for]="toPicker" />
+    <mat-datepicker #toPicker />
+  </mat-form-field>
+</div>
+
+@if (filteredUser(); as user) {
+  <p class="active-filter">
+    {{ 'admin.audit.byUser' | translate: { user } }}
+    <button mat-button type="button" (click)="filterByUser(null)">
+      {{ 'admin.audit.clear' | translate }}
+    </button>
+  </p>
+}
+@if (query().entityId; as entityId) {
+  <p class="active-filter">
+    {{ 'admin.audit.oneEntity' | translate: { id: entityId } }}
+    <button mat-button type="button" (click)="filterByEntity(null)">
+      {{ 'admin.audit.clear' | translate }}
+    </button>
+  </p>
+}
+<p class="hint">{{ 'admin.audit.utcHint' | translate }}</p>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="state">{{ 'common.loading' | translate }}</p>
+  }
+  @case ('error') {
+    <p class="state state-error" role="alert">
+      {{ 'admin.common.loadFailed' | translate }}
+      <button mat-button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </p>
+  }
+  @default {
+    @if (result(); as r) {
+      @if (r.items.length === 0) {
+        <p class="state">{{ 'admin.audit.empty' | translate }}</p>
+      } @else {
+        <div class="table-scroll">
+          <table mat-table [dataSource]="r.items" multiTemplateDataRows>
+            <ng-container matColumnDef="timestamp">
+              <th mat-header-cell *matHeaderCellDef>{{ 'admin.audit.when' | translate }}</th>
+              <td mat-cell *matCellDef="let e">{{ e.timestamp | localDate: 'short' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="user">
+              <th mat-header-cell *matHeaderCellDef>{{ 'admin.audit.user' | translate }}</th>
+              <td mat-cell *matCellDef="let e">
+                @if (e.userId && !query().userId) {
+                  <button
+                    mat-button
+                    type="button"
+                    [attr.aria-label]="
+                      'admin.audit.filterUser' | translate: { user: e.userDisplayName }
+                    "
+                    (click)="filterByUser(e.userId)"
+                  >
+                    {{ e.userDisplayName }}
+                  </button>
+                } @else {
+                  {{ e.userDisplayName }}
+                }
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="entity">
+              <th mat-header-cell *matHeaderCellDef>{{ 'admin.audit.entity' | translate }}</th>
+              <td mat-cell *matCellDef="let e">
+                {{ 'auditEntity.' + e.entityName | translate }}
+                @if (!query().entityId) {
+                  <button mat-button type="button" (click)="filterByEntity(e)">
+                    {{ 'admin.audit.history' | translate }}
+                  </button>
+                }
+                @if (e.entityName === 'Booking') {
+                  <a mat-button [routerLink]="['/admin/bookings', e.entityId]">
+                    {{ 'admin.bookings.openDetail' | translate }}
+                  </a>
+                }
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="action">
+              <th mat-header-cell *matHeaderCellDef>{{ 'admin.audit.action' | translate }}</th>
+              <td mat-cell *matCellDef="let e">{{ 'auditAction.' + e.action | translate }}</td>
+            </ng-container>
+            <ng-container matColumnDef="changes">
+              <th mat-header-cell *matHeaderCellDef class="actions">
+                {{ 'admin.audit.changes' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let e" class="actions">
+                <button
+                  mat-button
+                  type="button"
+                  [attr.aria-expanded]="expanded().has(e.id)"
+                  (click)="toggle(e)"
+                >
+                  {{ (expanded().has(e.id) ? 'admin.audit.hide' : 'admin.audit.show') | translate }}
+                </button>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="details">
+              <td mat-cell *matCellDef="let e" [attr.colspan]="columns.length">
+                @if (expanded().has(e.id)) {
+                  <div class="details">
+                    <sd-audit-changes [changes]="e.changes" />
+                  </div>
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-row *matRowDef="let e; columns: columns"></tr>
+            <tr mat-row *matRowDef="let e; columns: ['details']" class="details-row"></tr>
+          </table>
+        </div>
+        @if (r.totalPages > 1) {
+          <nav class="pager" [attr.aria-label]="'search.pager.label' | translate">
+            <button
+              mat-button
+              type="button"
+              [disabled]="r.page <= 1"
+              (click)="goToPage(r.page - 1)"
+            >
+              {{ 'search.pager.previous' | translate }}
+            </button>
+            <span>
+              {{ 'search.pager.position' | translate: { page: r.page, pages: r.totalPages } }}
+            </span>
+            <button
+              mat-button
+              type="button"
+              [disabled]="r.page >= r.totalPages"
+              (click)="goToPage(r.page + 1)"
+            >
+              {{ 'search.pager.next' | translate }}
+            </button>
+          </nav>
+        }
+      }
+    }
+  }
+}

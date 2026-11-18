@@ -129,6 +129,42 @@
           {{ 'admin.common.save' | translate }}
         </button>
       </form>
+
+      <section class="history" [attr.aria-label]="'admin.booking.history' | translate">
+        <h2>{{ 'admin.booking.history' | translate }}</h2>
+        @switch (historyState()) {
+          @case ('loading') {
+            <p class="hint">{{ 'common.loading' | translate }}</p>
+          }
+          @case ('error') {
+            <p class="state-error" role="alert">
+              {{ 'admin.common.loadFailed' | translate }}
+              <button mat-button type="button" (click)="loadHistory()">
+                {{ 'common.retry' | translate }}
+              </button>
+            </p>
+          }
+          @default {
+            @if (history().length === 0) {
+              <p class="hint">{{ 'admin.booking.noHistory' | translate }}</p>
+            } @else {
+              <ol class="timeline">
+                @for (entry of history(); track entry.id) {
+                  <li>
+                    <p class="when">
+                      <strong>{{ 'auditAction.' + entry.action | translate }}</strong>
+                      · {{ entry.timestamp | localDate: 'short' }} · {{ entry.userDisplayName }}
+                    </p>
+                    @if (entry.action !== 'Created') {
+                      <sd-audit-changes [changes]="entry.changes" />
+                    }
+                  </li>
+                }
+              </ol>
+            }
+          }
+        }
+      </section>
     }
   }
 }

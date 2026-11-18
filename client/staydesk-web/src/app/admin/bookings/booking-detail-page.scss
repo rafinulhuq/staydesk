@@ -54,3 +54,30 @@
     display: block;
   }
 }
+
+.history {
+  margin-top: calc(var(--sd-space) * 4);
+
+  h2 {
+    font: var(--mat-sys-title-medium);
+  }
+
+  .hint {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 calc(var(--sd-space) * 2);
+  border-inline-start: 2px solid var(--mat-sys-outline-variant);
+
+  li {
+    padding-bottom: calc(var(--sd-space) * 2);
+  }
+
+  .when {
+    margin: 0 0 calc(var(--sd-space) / 2);
+  }
+}

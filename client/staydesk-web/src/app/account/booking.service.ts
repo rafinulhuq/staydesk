@@ -8,6 +8,7 @@ import {
   CreateBookingRequest,
   MyBookingsScope,
 } from '../shared/booking.models';
+import { AuditEntry } from '../shared/audit.models';
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
@@ -53,6 +54,11 @@ export class BookingService {
 
   markNoShow(id: string): Observable<BookingDetail> {
     return this.http.post<BookingDetail>(`/api/v1/bookings/${id}/no-show`, null);
+  }
+
+  // BO-4: the booking's audit entries, oldest first. Staff only.
+  history(id: string): Observable<AuditEntry[]> {
+    return this.http.get<AuditEntry[]>(`/api/v1/bookings/${id}/history`);
   }
 
   updateNotes(id: string, internalNotes: string): Observable<BookingDetail> {

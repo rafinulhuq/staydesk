@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using StayDesk.Application.Auditing;
 using StayDesk.Application.Bookings;
 using StayDesk.Application.Pricing;
 using StayDesk.Application.Properties;
@@ -18,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<PricingService>();
         services.AddScoped<PriceRuleService>();
         services.AddScoped<BookingService>();
+        services.AddScoped<AuditService>();
         return services;
     }
 }

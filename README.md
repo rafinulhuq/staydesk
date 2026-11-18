@@ -2,7 +2,7 @@
 
 Hotel booking platform with a public booking site and a staff back-office. ASP.NET Core 10 + Angular 22 + PostgreSQL.
 
-**Status:** early build. Phases 1 to 4 are done: login and registration, admin pages for properties, rooms and price rules, the public site to search free rooms with a per-night price breakdown, and booking: a 3-step booking flow with mock payment, a confirmation email, My bookings with cancellation, and staff walk-in bookings through the API. The back-office has a bookings table with filters and CSV export, walk-in bookings, and a booking page where staff check guests in and out, mark no-shows, cancel (optionally waiving the fee) and keep internal notes. The audit log comes next.
+**Status:** early build. Phases 1 to 4 are done: login and registration, admin pages for properties, rooms and price rules, the public site to search free rooms with a per-night price breakdown, and booking: a 3-step booking flow with mock payment, a confirmation email, My bookings with cancellation, and staff walk-in bookings through the API. The back-office has a bookings table with filters and CSV export, walk-in bookings, and a booking page where staff check guests in and out, mark no-shows, cancel (optionally waiving the fee) and keep internal notes. Every change to bookings, rooms, properties, price rules and user roles is written to an append-only audit log (EF Core interceptor); staff see a booking's history on its page and Admin can browse the whole log. Real-time updates, the occupancy calendar and the dashboard come next.
 
 ## What it will do
 

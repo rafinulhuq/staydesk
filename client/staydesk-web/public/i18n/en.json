@@ -150,7 +150,8 @@
       "bookings": "Bookings",
       "properties": "Properties",
       "rooms": "Rooms",
-      "pricing": "Price rules"
+      "pricing": "Price rules",
+      "audit": "Audit log"
     },
     "common": {
       "showInactive": "Show inactive",
@@ -336,7 +337,32 @@
         "notAllowed": "Not possible for this booking today. Check-in runs from the arrival day to the last night; no-show from the day after arrival.",
         "changedElsewhere": "Someone else changed this booking first. The page now shows their version.",
         "failed": "That didn't work. Try again."
-      }
+      },
+      "history": "History",
+      "noHistory": "No recorded changes yet."
+    },
+    "audit": {
+      "title": "Audit log",
+      "entity": "Record",
+      "anyEntity": "All records",
+      "from": "From",
+      "to": "Until",
+      "utcHint": "Dates are UTC days. Newest changes first.",
+      "empty": "No changes match these filters.",
+      "when": "When",
+      "user": "By",
+      "action": "Change",
+      "changes": "Details",
+      "show": "Show changes",
+      "hide": "Hide changes",
+      "history": "History",
+      "filterUser": "Only changes by {{user}}",
+      "byUser": "Only changes by {{user}}.",
+      "oneEntity": "History of one record ({{id}}).",
+      "clear": "Show all",
+      "field": "Field",
+      "old": "Before",
+      "new": "After"
     }
   },
   "auth": {
@@ -432,5 +458,18 @@
     "CheckedOut": "Checked out",
     "Cancelled": "Cancelled",
     "NoShow": "No-show"
+  },
+  "auditAction": {
+    "Created": "Created",
+    "Updated": "Changed",
+    "Deactivated": "Deactivated",
+    "Reactivated": "Reactivated"
+  },
+  "auditEntity": {
+    "Booking": "Booking",
+    "Room": "Room",
+    "Property": "Property",
+    "PriceRule": "Price rule",
+    "UserRole": "User role"
   }
 }

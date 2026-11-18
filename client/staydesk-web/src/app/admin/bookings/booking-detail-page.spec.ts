@@ -77,7 +77,11 @@ describe('BookingDetailPage', () => {
     );
   }
 
-  afterEach(() => http.verify());
+  // Every loaded or changed booking reloads its history; tests that don't look at it answer empty.
+  afterEach(() => {
+    http.match('/api/v1/bookings/b1/history').forEach((request) => request.flush([]));
+    http.verify();
+  });
 
   it('offers check-in, no-show and cancel for a Confirmed booking, and check-out once checked in', async () => {
     const page = await open(booking('Confirmed'));
@@ -140,5 +144,45 @@ describe('BookingDetailPage', () => {
     const save = http.expectOne({ method: 'PATCH', url: '/api/v1/bookings/b1/notes' });
     expect(save.request.body).toEqual({ internalNotes: 'Cot requested. Late arrival.' });
     save.flush(booking('Confirmed', { internalNotes: 'Cot requested. Late arrival.' }));
+  });
+
+  it('shows the history with the fields each change touched', async () => {
+    await open(booking('CheckedIn'));
+
+    http.expectOne('/api/v1/bookings/b1/history').flush([
+      {
+        id: 'a1',
+        timestamp: '2026-11-01T10:00:00Z',
+        userId: 'g1',
+        userDisplayName: 'Anna Becker',
+        entityName: 'Booking',
+        entityId: 'b1',
+        action: 'Created',
+        changes: { Status: { old: null, new: 'Pending' } },
+        correlationId: 'c1',
+      },
+      {
+        id: 'a2',
+        timestamp: '2026-11-18T09:12:00Z',
+        userId: 's1',
+        userDisplayName: 'Jonas Becker',
+        entityName: 'Booking',
+        entityId: 'b1',
+        action: 'Updated',
+        changes: { Status: { old: 'Confirmed', new: 'CheckedIn' } },
+        correlationId: 'c2',
+      },
+    ]);
+    await harness.fixture.whenStable();
+
+    const items = [
+      ...harness.fixture.nativeElement.querySelectorAll('.timeline li'),
+    ] as HTMLElement[];
+    expect(items).toHaveLength(2);
+    expect(items[0].querySelector('sd-audit-changes')).toBeNull();
+    expect(items[1].textContent).toContain('Jonas Becker');
+    expect(items[1].querySelector('sd-audit-changes')?.textContent).toMatch(
+      /Status\s*Confirmed\s*CheckedIn/,
+    );
   });
 });

@@ -13,11 +13,13 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, filter, switchMap } from 'rxjs';
 import { BookingService } from '../../account/booking.service';
 import { LanguageService } from '../../core/i18n/language.service';
+import { AuditEntry } from '../../shared/audit.models';
 import { BookingDetail } from '../../shared/booking.models';
 import { ConfirmDialog, ConfirmDialogData } from '../../shared/confirm-dialog';
 import { EurPipe } from '../../shared/eur.pipe';
 import { LocalDatePipe } from '../../shared/local-date.pipe';
 import { problemCode } from '../../shared/server-errors';
+import { AuditChanges } from '../audit/audit-changes';
 import { BookingNights } from './booking-nights';
 
 export const maxNotesLength = 2000;
@@ -25,7 +27,7 @@ export const maxNotesLength = 2000;
 type Notice = 'notAllowed' | 'changedElsewhere' | 'failed' | null;
 
 // SRS §7 /admin/bookings/:id (BO-2). The server decides whether an action is allowed today;
-// the page only offers the actions that fit the current status. The history timeline is 5c.
+// the page only offers the actions that fit the current status.
 @Component({
   selector: 'sd-booking-detail-page',
   imports: [
@@ -35,6 +37,7 @@ type Notice = 'notAllowed' | 'changedElsewhere' | 'failed' | null;
     EurPipe,
     LocalDatePipe,
     BookingNights,
+    AuditChanges,
     MatButtonModule,
     MatCheckboxModule,
     MatFormFieldModule,
@@ -56,6 +59,8 @@ export class BookingDetailPage {
 
   readonly booking = signal<BookingDetail | null>(null);
   readonly state = signal<'loading' | 'loaded' | 'notFound' | 'error'>('loading');
+  readonly history = signal<AuditEntry[]>([]);
+  readonly historyState = signal<'loading' | 'loaded' | 'error'>('loading');
   readonly notice = signal<Notice>(null);
   readonly busy = signal(false);
   readonly waiveFee = signal(false);
@@ -169,6 +174,19 @@ export class BookingDetailPage {
     this.waiveFee.set(false);
     this.busy.set(false);
     this.state.set('loaded');
+    this.loadHistory();
+  }
+
+  // BO-4. Reloaded after every change, so the new entry shows straight away.
+  loadHistory(): void {
+    this.historyState.set('loading');
+    this.bookings.history(this.id).subscribe({
+      next: (history) => {
+        this.history.set(history);
+        this.historyState.set('loaded');
+      },
+      error: () => this.historyState.set('error'),
+    });
   }
 
   private fail(error: unknown): void {

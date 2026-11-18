@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StayDesk.Application.Auth;
 using StayDesk.Application.Bookings;
 using StayDesk.Application.Persistence;
+using StayDesk.Infrastructure.Auditing;
 using StayDesk.Infrastructure.Email;
 using StayDesk.Infrastructure.Identity;
 using StayDesk.Infrastructure.Jobs;
@@ -22,9 +23,12 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException(
                 "ConnectionStrings:Default is not set. Use user-secrets or the ConnectionStrings__Default environment variable.");
 
-        services.AddDbContext<StayDeskDbContext>(options => options
+        services.AddHttpContextAccessor();
+        services.AddSingleton<AuditInterceptor>();
+        services.AddDbContext<StayDeskDbContext>((sp, options) => options
             .UseNpgsql(connectionString)
-            .UseSnakeCaseNamingConvention());
+            .UseSnakeCaseNamingConvention()
+            .AddInterceptors(sp.GetRequiredService<AuditInterceptor>()));
         services.AddScoped<IStayDeskDbContext>(sp => sp.GetRequiredService<StayDeskDbContext>());
 
         // AddIdentityCore registers users, roles and password hashing without cookie auth;

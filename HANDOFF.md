@@ -2,11 +2,11 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-18 13:00 +06
+**Last updated:** 2026-11-18 13:15 +06
 
 ## Where things stand
 
-- **Phase:** 5b done (booking detail page with status actions, fee waiver and internal notes; walk-in dialog with guest lookup from T-064). **Next: 5c**: audit `SaveChangesInterceptor` (AUD-*), `GET /bookings/{id}/history` (BO-4) with the timeline on the detail page, and the Admin audit log page `/admin/audit`.
+- **Phase:** 5c done, so Phase 5 (back-office) is complete. **Next: 6a**: SignalR hub `/hubs/bookings` (Staff/Admin, property groups, `access_token` redaction in logs, NFR-8) and the Angular `BookingHubService` (reconnect, token refresh before reconnect).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
 - **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059, T-063.
@@ -61,6 +61,7 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 - `BookingSummary` is shared by My bookings and the back-office list. EF can't sort on a record built through its constructor, so `BookingService.BackOfficeQuery` sorts the anonymous join row first and projects last.
 - `MatDialog.open` uses the root injector, so a dialog can't see providers declared on a route (e.g. the date adapter from `provideLocalizedDateAdapter`). Pass `injector` in the dialog config (see `BookingsPage.newWalkIn`).
 - A `<form>` without `[formGroup]`/`ngForm` never emits `ngSubmit`; the browser submits natively and reloads the page. Use `(submit)` with `preventDefault()`, and click the real submit button in specs.
+- Audit entries are written by `Infrastructure/Auditing/AuditInterceptor.cs` inside SaveChanges. Test data saved with `api.Database.CreateContext()` bypasses it (that context has no interceptor), which is why tests seed rooms that way without audit noise. Display names come from the JWT `name` claim, so tokens issued before 5c show the user id until they refresh.
 - Material components that use ligature icons (stepper, some expansion/chip parts) show raw text such as "done", because the Material Icons font isn't loaded (T-062).
 - Never `pkill -f "<pattern>"` through `flatpak-spawn`: the pattern matches the spawn command itself and kills the agent shell. Use `pgrep -af` to find the PID, then `kill <pid>`.
 - Angular 22: `CanMatchFn` takes a third argument (`currentSnapshot`); test helpers must pass it. Material colour tweaks go through `mat.*-overrides` mixins; the toolbar passes its text colour to text buttons, so use `mat.toolbar-overrides`.
@@ -76,4 +77,4 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 ## Next steps
 
 1. Owner decides T-004/T-005/T-028/T-032/T-037/T-050/T-051/T-058/T-059/T-063 whenever. Quick fixes that can go in before or with 5a: T-036 (room-number 23505 → 400), T-026 (coverage threshold).
-2. Phase 5c: list AUD-1..n, BO-4 and the §6/§7 audit rows. The interceptor lives in Infrastructure, appends only, never records secrets (no password hashes, tokens), uses GUID v7 and the CorrelationId. Wire the expiry job's `system` entry (T-057). The timeline goes on `admin/bookings/booking-detail-page`.
+2. Phase 6a: list CAL-* and the §6 WS row. Events BookingCreated/Updated/Cancelled with bookingId, propertyId, roomId, checkIn, checkOut, status, raised from Application (not controllers), including the expiry job (T-057). Decide how Application publishes without referencing SignalR (an Application interface implemented in Api is the likely shape; it's the case AGENTS.md allows).

@@ -150,7 +150,8 @@
       "bookings": "Buchungen",
       "properties": "Unterkünfte",
       "rooms": "Zimmer",
-      "pricing": "Preisregeln"
+      "pricing": "Preisregeln",
+      "audit": "Änderungsprotokoll"
     },
     "common": {
       "showInactive": "Inaktive anzeigen",
@@ -336,7 +337,32 @@
         "notAllowed": "Für diese Buchung heute nicht möglich. Einchecken geht vom Anreisetag bis zur letzten Nacht, „nicht erschienen“ ab dem Tag nach der Anreise.",
         "changedElsewhere": "Jemand anderes hat diese Buchung zuerst geändert. Die Seite zeigt jetzt deren Stand.",
         "failed": "Das hat nicht geklappt. Bitte erneut versuchen."
-      }
+      },
+      "history": "Verlauf",
+      "noHistory": "Noch keine Änderungen erfasst."
+    },
+    "audit": {
+      "title": "Änderungsprotokoll",
+      "entity": "Datensatz",
+      "anyEntity": "Alle Datensätze",
+      "from": "Von",
+      "to": "Bis",
+      "utcHint": "Daten sind UTC-Tage. Neueste Änderungen zuerst.",
+      "empty": "Keine Änderungen für diese Filter.",
+      "when": "Wann",
+      "user": "Von",
+      "action": "Änderung",
+      "changes": "Details",
+      "show": "Änderungen zeigen",
+      "hide": "Änderungen ausblenden",
+      "history": "Verlauf",
+      "filterUser": "Nur Änderungen von {{user}}",
+      "byUser": "Nur Änderungen von {{user}}.",
+      "oneEntity": "Verlauf eines Datensatzes ({{id}}).",
+      "clear": "Alle zeigen",
+      "field": "Feld",
+      "old": "Vorher",
+      "new": "Nachher"
     }
   },
   "auth": {
@@ -432,5 +458,18 @@
     "CheckedOut": "Ausgecheckt",
     "Cancelled": "Storniert",
     "NoShow": "Nicht erschienen"
+  },
+  "auditAction": {
+    "Created": "Angelegt",
+    "Updated": "Geändert",
+    "Deactivated": "Deaktiviert",
+    "Reactivated": "Reaktiviert"
+  },
+  "auditEntity": {
+    "Booking": "Buchung",
+    "Room": "Zimmer",
+    "Property": "Unterkunft",
+    "PriceRule": "Preisregel",
+    "UserRole": "Benutzerrolle"
   }
 }

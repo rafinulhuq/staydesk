@@ -4,10 +4,14 @@
     <ProjectReference Include="..\StayDesk.Application\StayDesk.Application.csproj" />
   </ItemGroup>
 
+  <!-- The audit interceptor reads the current user and correlation ID from HttpContext (AUD-1). -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.15" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StayDesk.Application.Auditing;
 using StayDesk.Application.Auth;
 using StayDesk.Application.Bookings;
 using StayDesk.Application.Paging;
@@ -10,7 +11,7 @@ namespace StayDesk.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/v1/bookings")]
-public sealed class BookingsController(BookingService bookings) : ControllerBase
+public sealed class BookingsController(BookingService bookings, AuditService audit) : ControllerBase
 {
     // 201 for a new booking, 200 when an Idempotency-Key retry returns the original (BOOK-8).
     // Staff (and Admin, who also holds Staff) create walk-ins (BOOK-9).
@@ -59,6 +60,12 @@ public sealed class BookingsController(BookingService bookings) : ControllerBase
     [HttpPost("{id:guid}/cancel")]
     public async Task<BookingDetail> Cancel(Guid id, CancelBookingRequest request, CancellationToken ct) =>
         await bookings.CancelAsync(id, CurrentUserId, User.IsInRole(Roles.Staff), request, ct);
+
+    // BO-4: Staff read one booking's history without access to the Admin audit log.
+    [Authorize(Roles = Roles.Staff)]
+    [HttpGet("{id:guid}/history")]
+    public async Task<IReadOnlyList<AuditEntrySummary>> History(Guid id, CancellationToken ct) =>
+        await audit.BookingHistoryAsync(id, ct);
 
     // BO-2.
     [Authorize(Roles = Roles.Staff)]
