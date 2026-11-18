@@ -147,6 +147,7 @@
     },
     "nav": {
       "dashboard": "Übersicht",
+      "bookings": "Buchungen",
       "properties": "Unterkünfte",
       "rooms": "Zimmer",
       "pricing": "Preisregeln"
@@ -261,6 +262,38 @@
         "withRule": "Mit dieser Regel",
         "total": "Gesamt",
         "invalid": "Bitte die markierten Felder prüfen."
+      }
+    },
+    "bookings": {
+      "title": "Buchungen",
+      "export": "CSV exportieren",
+      "empty": "Keine Buchungen für diese Filter.",
+      "count": {
+        "one": "1 Buchung",
+        "other": "{{count}} Buchungen"
+      },
+      "open": "Buchung {{reference}} öffnen",
+      "exportErrors": {
+        "tooMany": "Mehr als 10.000 Buchungen passen. Grenzen Sie die Filter ein, um sie zu exportieren.",
+        "failed": "Export fehlgeschlagen. Bitte erneut versuchen."
+      },
+      "filters": {
+        "search": "Gast oder Buchungsnr.",
+        "property": "Unterkunft",
+        "anyProperty": "Alle Unterkünfte",
+        "status": "Status",
+        "anyStatus": "Alle Status",
+        "from": "Aufenthalt ab",
+        "to": "Aufenthalt bis",
+        "datesHint": "Zeigt Buchungen mit mindestens einer Nacht zwischen den beiden Daten."
+      },
+      "fields": {
+        "reference": "Buchungsnummer",
+        "guest": "Gast",
+        "room": "Zimmer",
+        "priceBreakdown": "Preis pro Nacht",
+        "cancellationFee": "Stornogebühr",
+        "feeWaived": "erlassen"
       }
     }
   },

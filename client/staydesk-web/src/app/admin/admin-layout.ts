@@ -36,7 +36,10 @@ export class AdminLayout {
   private readonly auth = inject(AuthService);
 
   protected readonly links = computed(() => {
-    const links = [{ path: '/admin', key: 'admin.nav.dashboard' }];
+    const links = [
+      { path: '/admin', key: 'admin.nav.dashboard' },
+      { path: '/admin/bookings', key: 'admin.nav.bookings' },
+    ];
     if (this.auth.hasRole('Admin')) {
       links.push(
         { path: '/admin/properties', key: 'admin.nav.properties' },

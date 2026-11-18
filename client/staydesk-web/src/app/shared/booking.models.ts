@@ -47,16 +47,28 @@ export interface BookingDetail {
 
 export type MyBookingsScope = 'Upcoming' | 'Past';
 
+export const bookingStatuses: readonly BookingStatus[] = [
+  'Pending',
+  'Confirmed',
+  'CheckedIn',
+  'CheckedOut',
+  'Cancelled',
+  'NoShow',
+];
+
+// One row of My bookings and of the back-office table (BO-1).
 export interface BookingSummary {
   id: string;
   reference: string;
   roomId: string;
   roomNumber: string;
   roomType: RoomType;
+  propertyId: string;
   propertyName: string;
   checkIn: string;
   checkOut: string;
   guests: number;
+  guestFullName: string;
   status: BookingStatus;
   totalPrice: number;
   expiresAt: string | null;
@@ -67,4 +79,18 @@ export interface CancellationQuote {
   fee: number;
   refund: number;
   freeUntil: string;
+}
+
+export type BookingListSort = 'CheckIn' | 'TotalPrice' | 'GuestName';
+
+// BO-1. From/To pick bookings with a night in that range, both days included.
+export interface BookingListQuery {
+  propertyId: string | null;
+  status: BookingStatus | null;
+  from: string | null;
+  to: string | null;
+  search: string;
+  sort: BookingListSort;
+  dir: 'asc' | 'desc';
+  page: number;
 }

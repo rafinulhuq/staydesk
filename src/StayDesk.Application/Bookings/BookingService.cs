@@ -1,7 +1,9 @@
+using System.Linq.Expressions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using StayDesk.Application.Errors;
+using StayDesk.Application.Paging;
 using StayDesk.Application.Persistence;
 using StayDesk.Application.Pricing;
 using StayDesk.Domain.Bookings;
@@ -139,10 +141,85 @@ public sealed class BookingService(
             from b in ordered.AsNoTracking()
             join r in db.Rooms.IgnoreQueryFilters() on b.RoomId equals r.Id
             join p in db.Properties.IgnoreQueryFilters() on r.PropertyId equals p.Id
-            select new BookingSummary(b.Id, b.Reference, r.Id, r.RoomNumber, r.Type, p.Name,
-                b.CheckIn, b.CheckOut, b.Guests, b.Status, b.TotalPrice, b.ExpiresAt))
+            select new BookingSummary(b.Id, b.Reference, r.Id, r.RoomNumber, r.Type, p.Id, p.Name,
+                b.CheckIn, b.CheckOut, b.Guests, b.GuestFullName, b.Status, b.TotalPrice, b.ExpiresAt))
             .ToListAsync(ct);
     }
+
+    // BO-1. Staff see every booking, including those of deactivated rooms and properties.
+    public async Task<Paged<BookingSummary>> ListAsync(BookingListRequest request, CancellationToken ct)
+    {
+        var bookings = BackOfficeQuery(request);
+        var total = await bookings.CountAsync(ct);
+        var page = await bookings
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+        return new Paged<BookingSummary>(page, request.Page, request.PageSize, total);
+    }
+
+    public const int MaxExportRows = 10_000;
+
+    // BO-3: the table's filters and order. One row past the limit is read to tell "exactly
+    // 10,000" from "more", so a cut-off file is never handed out as if it were complete.
+    public async Task<byte[]> ExportCsvAsync(BookingListRequest request, CancellationToken ct)
+    {
+        var bookings = await BackOfficeQuery(request).Take(MaxExportRows + 1).ToListAsync(ct);
+        if (bookings.Count > MaxExportRows)
+        {
+            throw Invalid("", $"More than {MaxExportRows:N0} bookings match. Narrow the filters to export them.");
+        }
+        return BookingCsv.Write(bookings);
+    }
+
+    // Filters and sorts before projecting: EF can't translate a sort on a record built through
+    // its constructor. Ties break on the unique reference, so paging is stable between requests.
+    private IQueryable<BookingSummary> BackOfficeQuery(BookingListRequest request)
+    {
+        var rows =
+            from b in db.Bookings.AsNoTracking()
+            join r in db.Rooms.IgnoreQueryFilters() on b.RoomId equals r.Id
+            join p in db.Properties.IgnoreQueryFilters() on r.PropertyId equals p.Id
+            select new { Booking = b, Room = r, Property = p };
+
+        if (request.PropertyId is { } propertyId)
+        {
+            rows = rows.Where(x => x.Property.Id == propertyId);
+        }
+        if (request.Status is { } status)
+        {
+            rows = rows.Where(x => x.Booking.Status == status);
+        }
+        if (request.From is { } from)
+        {
+            rows = rows.Where(x => x.Booking.CheckOut > from);
+        }
+        if (request.To is { } to)
+        {
+            rows = rows.Where(x => x.Booking.CheckIn <= to);
+        }
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.Trim().ToLower();
+            rows = rows.Where(x => x.Booking.GuestFullName.ToLower().Contains(search) || x.Booking.Reference.ToLower().Contains(search));
+        }
+
+        var desc = request.Dir == SortDirection.Desc;
+        var ordered = request.Sort switch
+        {
+            BookingListSort.TotalPrice => OrderBy(rows, x => x.Booking.TotalPrice, desc),
+            BookingListSort.GuestName => OrderBy(rows, x => x.Booking.GuestFullName, desc),
+            _ => OrderBy(rows, x => x.Booking.CheckIn, desc),
+        };
+
+        return ordered.ThenBy(x => x.Booking.Reference).Select(x => new BookingSummary(
+            x.Booking.Id, x.Booking.Reference, x.Room.Id, x.Room.RoomNumber, x.Room.Type, x.Property.Id, x.Property.Name,
+            x.Booking.CheckIn, x.Booking.CheckOut, x.Booking.Guests, x.Booking.GuestFullName, x.Booking.Status,
+            x.Booking.TotalPrice, x.Booking.ExpiresAt));
+    }
+
+    private static IOrderedQueryable<T> OrderBy<T, TKey>(IQueryable<T> rows, Expression<Func<T, TKey>> key, bool desc) =>
+        desc ? rows.OrderByDescending(key) : rows.OrderBy(key);
 
     // BOOK-3 mock payment by the guest who booked. Paying at or after ExpiresAt throws
     // BookingExpiredException (409). If the expiry job cancels the hold at the same moment, the

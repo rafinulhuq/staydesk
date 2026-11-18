@@ -58,3 +58,22 @@ body {
 .sd-booked-date .mat-calendar-body-cell-content {
   text-decoration: line-through;
 }
+
+// Booking status label (My bookings, back office). The status is written out, so colour
+// is only a second signal (NFR-11).
+.sd-booking-status {
+  padding: 0 var(--sd-space);
+  border-radius: var(--mat-sys-corner-small);
+  background: var(--mat-sys-surface-container-high);
+
+  &[data-status='Confirmed'],
+  &[data-status='CheckedIn'] {
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  &[data-status='Pending'] {
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+  }
+}

@@ -1,4 +1,5 @@
 using FluentValidation;
+using StayDesk.Application.Paging;
 using StayDesk.Application.Pricing;
 
 namespace StayDesk.Application.Bookings;
@@ -31,5 +32,21 @@ public sealed class NewGuestValidator : AbstractValidator<NewGuest?>
         RuleFor(g => g!.LastName).NotEmpty().MaximumLength(100);
         RuleFor(g => g!.Email).NotEmpty().EmailAddress().MaximumLength(256);
         RuleFor(g => g!.Phone).MaximumLength(30);
+    }
+}
+
+// BO-1 and BO-3.
+public sealed class BookingListRequestValidator : AbstractValidator<BookingListRequest>
+{
+    public BookingListRequestValidator()
+    {
+        RuleFor(r => r.Status).IsInEnum();
+        RuleFor(r => r.To).GreaterThanOrEqualTo(r => r.From).When(r => r.From is not null)
+            .WithMessage("The end date can't be before the start date.");
+        RuleFor(r => r.Search).MaximumLength(100);
+        RuleFor(r => r.Sort).IsInEnum();
+        RuleFor(r => r.Dir).IsInEnum();
+        RuleFor(r => r.Page).GreaterThanOrEqualTo(1);
+        RuleFor(r => r.PageSize).InclusiveBetween(1, Paged<BookingSummary>.MaxPageSize);
     }
 }
