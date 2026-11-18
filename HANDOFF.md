@@ -2,14 +2,14 @@
 
 Read this first in every new session. Then read `TRACKER.md`, then the parts of `docs/SRS.md` the next task touches. Agent rules are in `AGENTS.md`.
 
-**Last updated:** 2026-11-18 03:00 +06
+**Last updated:** 2026-11-18 +06
 
 ## Where things stand
 
 - **Phase:** 4e done, so Phase 4 (booking core) is complete. **Next: 5a**: back-office bookings table with filters, sort, server paging and CSV export (`GET /bookings`, `GET /bookings/export`, BO-*).
 - **Repo:** `main` on GitHub is the only branch.
 - **Not committed on purpose:** the original SRS PDF and `SRS-revision-plan.md`, both git-ignored (T-003).
-- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059.
+- **Open owner decisions (parked by the owner on 2026-11-17, ask again later):** T-004, T-005, T-028, T-032, T-037. New since: T-050, T-051, T-058, T-059, T-063.
 - **Interview notes:** `notes/interview-prep.md` (git-ignored, local only). Append 2–3 talking points there at the end of every sub-feature.
 
 ## Files and what each one is for
@@ -72,5 +72,5 @@ Read this first in every new session. Then read `TRACKER.md`, then the parts of 
 
 ## Next steps
 
-1. Owner decides T-004/T-005/T-050/T-051/T-058/T-059 whenever.
+1. Owner decides T-004/T-005/T-028/T-032/T-037/T-050/T-051/T-058/T-059/T-063 whenever. Quick fixes that can go in before or with 5a: T-036 (room-number 23505 → 400), T-026 (coverage threshold).
 2. Phase 5a: list the requirement IDs (BO-1, BO-2 and the related §6 rows) and the files to touch. Use `Paged<T>` for `GET /bookings`; search on reference and guest name; CSV export with the same filters. The walk-in form ("New walk-in" button) can call the existing `POST /bookings` with `guestId`/`newGuest`.
