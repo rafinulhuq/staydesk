@@ -8,8 +8,10 @@ using Microsoft.OpenApi;
 using Serilog;
 using StayDesk.Api;
 using StayDesk.Api.Errors;
+using StayDesk.Api.Hubs;
 using StayDesk.Api.Middleware;
 using StayDesk.Application;
+using StayDesk.Application.Bookings;
 using StayDesk.Infrastructure;
 using StayDesk.Infrastructure.Identity;
 using StayDesk.Infrastructure.Persistence;
@@ -35,6 +37,9 @@ builder.Services.AddControllers(options =>
 })
     // Enums are strings in the database (SRS §5), so the API uses the same names.
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options => options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddSingleton<IBookingEvents, SignalRBookingEvents>();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ProblemExceptionHandler>();
 
@@ -53,6 +58,21 @@ builder.Services
             NameClaimType = "sub",
             RoleClaimType = "role",
             ClockSkew = TimeSpan.FromSeconds(30),
+        };
+        // Browsers can't set headers on a WebSocket, so the SignalR client sends the token as
+        // ?access_token=. Only the hub accepts it there. NFR-8: request logs record the path
+        // without the query string, so the token never reaches a log (tested).
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Path.StartsWithSegments(BookingsHub.Path)
+                    && context.Request.Query["access_token"].ToString() is { Length: > 0 } token)
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            },
         };
     });
 builder.Services.AddAuthorization();
@@ -112,6 +132,7 @@ app.UseRateLimiter();
 
 app.MapHealthChecks("/health");
 app.MapControllers();
+app.MapHub<BookingsHub>(BookingsHub.Path);
 
 app.Run();
 

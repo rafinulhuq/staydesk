@@ -13,7 +13,7 @@ using StayDesk.Domain.Properties;
 namespace StayDesk.Application.Bookings;
 
 public sealed class BookingService(
-    IStayDeskDbContext db, PricingService pricing, IGuestAccounts accounts, IBookingEmails emails, TimeProvider time)
+    IStayDeskDbContext db, PricingService pricing, IGuestAccounts accounts, IBookingEmails emails, IBookingEvents events, TimeProvider time)
 {
     // BOOK-1, BOOK-2, BOOK-8, PRICE-7. A guest books for themselves and gets a Pending hold;
     // staff book a walk-in (BOOK-9) for an existing or new guest, Confirmed and paid at the desk.
@@ -113,7 +113,12 @@ public sealed class BookingService(
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
+        foreach (var hold in expiredHolds)
+        {
+            await PublishAsync(BookingEventType.BookingCancelled, hold, priced.Room.PropertyId, ct);
+        }
         var detail = await LoadDetailAsync(booking.Id, isStaff, ct) ?? throw NotFound();
+        await PublishAsync(BookingEventType.BookingCreated, detail, ct);
         if (isStaff)
         {
             await emails.SendConfirmationAsync(detail, ct);
@@ -233,6 +238,7 @@ public sealed class BookingService(
         await db.SaveChangesAsync(ct);
 
         var detail = await LoadDetailAsync(id, includeInternalNotes: false, ct) ?? throw NotFound();
+        await PublishAsync(BookingEventType.BookingUpdated, detail, ct);
         await emails.SendConfirmationAsync(detail, ct);
         return detail;
     }
@@ -261,7 +267,9 @@ public sealed class BookingService(
             payment.MarkRefunded();
         }
         await db.SaveChangesAsync(ct);
-        return await LoadDetailAsync(id, isStaff, ct) ?? throw NotFound();
+        var detail = await LoadDetailAsync(id, isStaff, ct) ?? throw NotFound();
+        await PublishAsync(BookingEventType.BookingCancelled, detail, ct);
+        return detail;
     }
 
     // BO-2 status actions, Staff only. "Today" is the date at the property (BOOK-4); the
@@ -284,7 +292,9 @@ public sealed class BookingService(
         var booking = await db.Bookings.SingleOrDefaultAsync(b => b.Id == id, ct) ?? throw NotFound();
         change(booking, await LoadPropertyAsync(booking, ct), time.GetUtcNow());
         await db.SaveChangesAsync(ct);
-        return await LoadDetailAsync(id, includeInternalNotes: true, ct) ?? throw NotFound();
+        var detail = await LoadDetailAsync(id, includeInternalNotes: true, ct) ?? throw NotFound();
+        await PublishAsync(BookingEventType.BookingUpdated, detail, ct);
+        return detail;
     }
 
     // BOOK-3 tidy-up, run by the expiry job every minute. Saves one hold at a time, so a hold
@@ -297,6 +307,10 @@ public sealed class BookingService(
             .OrderBy(b => b.ExpiresAt)
             .Take(ExpiryBatchSize)
             .ToListAsync(ct);
+        var roomIds = holds.Select(h => h.RoomId).Distinct().ToList();
+        var propertyOfRoom = await db.Rooms.IgnoreQueryFilters()
+            .Where(r => roomIds.Contains(r.Id))
+            .ToDictionaryAsync(r => r.Id, r => r.PropertyId, ct);
 
         var expired = 0;
         foreach (var hold in holds)
@@ -306,6 +320,7 @@ public sealed class BookingService(
             {
                 await db.SaveChangesAsync(ct);
                 expired++;
+                await PublishAsync(BookingEventType.BookingCancelled, hold, propertyOfRoom[hold.RoomId], ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -397,6 +412,13 @@ public sealed class BookingService(
             booking.CreatedAt, booking.ExpiresAt, booking.ConfirmedAt, booking.CheckedInAt, booking.CheckedOutAt, booking.CancelledAt,
             includeInternalNotes ? booking.InternalNotes : null);
     }
+
+    // CAL-2: sent after the change is saved, so a client that refetches sees it.
+    private Task PublishAsync(BookingEventType type, BookingDetail booking, CancellationToken ct) =>
+        events.PublishAsync(new BookingEvent(type, booking.Id, booking.PropertyId, booking.RoomId, booking.CheckIn, booking.CheckOut, booking.Status), ct);
+
+    private Task PublishAsync(BookingEventType type, Booking booking, Guid propertyId, CancellationToken ct) =>
+        events.PublishAsync(new BookingEvent(type, booking.Id, propertyId, booking.RoomId, booking.CheckIn, booking.CheckOut, booking.Status), ct);
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

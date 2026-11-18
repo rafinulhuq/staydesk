@@ -23,6 +23,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
 
   private readonly accessTokenSignal = signal<string | null>(null);
+  private accessTokenExpiresAt = 0;
   private readonly userSignal = signal<CurrentUser | null>(null);
   private refreshInFlight: Observable<string> | null = null;
 
@@ -85,6 +86,16 @@ export class AuthService {
     return this.refreshInFlight;
   }
 
+  // For connections that read the token once instead of going through the HTTP interceptor
+  // (the SignalR hub, on every connect and reconnect): the current token, or a refreshed one
+  // if it expires within the next minute.
+  freshAccessToken(): Promise<string> {
+    const token = this.accessTokenSignal();
+    return token && this.accessTokenExpiresAt - Date.now() > 60_000
+      ? Promise.resolve(token)
+      : firstValueFrom(this.refreshAccessToken());
+  }
+
   // Runs once at startup, before the first navigation, so guards see the restored user.
   async restoreSession(): Promise<void> {
     if (!localStorage.getItem(refreshTokenKey)) {
@@ -113,6 +124,7 @@ export class AuthService {
 
   private storeTokens(tokens: AuthTokens): void {
     this.accessTokenSignal.set(tokens.accessToken);
+    this.accessTokenExpiresAt = Date.parse(tokens.accessTokenExpiresAt);
     localStorage.setItem(refreshTokenKey, tokens.refreshToken);
   }
 
